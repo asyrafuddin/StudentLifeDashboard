@@ -3,9 +3,10 @@
 A web app that helps university students manage courses, deadlines, exams, their
 weekly timetable, grades/GPA and study time in one place.
 
-> **Current status: Stage 3 of 8.** Accounts, the secured database, and full
-> management of semesters, courses and assignments (list + calendar views) are
-> done. Exams and the timetable arrive in Stage 4. Without Supabase configured,
+> **Current status: Stage 4 of 8.** Accounts, the secured database, semesters,
+> courses, assignments (list + calendar), exams with countdowns, and the weekly
+> timetable (with clash detection) are done. Grades/GPA and the study tracker
+> arrive in Stage 5. Without Supabase configured,
 > the app runs in **demo mode**: the dashboard shows clearly labeled sample
 > data, and pages that save data explain that an account is needed.
 
@@ -56,10 +57,12 @@ src/
     auth/              AuthProvider (who is signed in) and route guards
     courses/           Course card, form, and delete dialog (with impact summary)
     dashboard/         Dashboard widgets (stat cards, deadlines, chart, …)
+    exams/             Exam list (with countdowns), form and dialogs
     form/              Form building blocks (field with error, select, color picker, dialog)
     layout/            Sidebar navigation and account menu
     semesters/         Semester selector, form and dialogs
     settings/          Settings page sections
+    timetable/         Week grid, phone day-list, clash notice, class form and dialogs
   config/              App-wide config (navigation links)
   hooks/               React hooks (auth, data loading, add/edit/delete editors)
   layouts/             Page shells (app with sidebar; centered auth card)
@@ -68,6 +71,8 @@ src/
     assignments.ts       Assignment filtering and sorting
     courses.ts           Course search and "what does deleting this remove?"
     calendar.ts          Month grid for the calendar view
+    exams.ts             Exam countdowns; upcoming vs. past
+    timetable.ts         Clash detection and side-by-side layout of overlapping classes
     gpa.ts               Credit-weighted GPA with explained exclusions
     schemas.ts           Zod validation rules for all forms
     supabase.ts          The single Supabase client
@@ -124,17 +129,21 @@ GPA = sum(grade points × credits) / sum(credits)
 | 1 | Setup, routing, responsive layout, dashboard with demo data | ✅ Done |
 | 2 | Supabase config, migrations, auth, RLS policies | ✅ Done |
 | 3 | Semesters, courses & assignments CRUD | ✅ Done |
-| 4 | Exams & weekly timetable | Next |
-| 5 | Grades, configurable GPA scale, study tracker | |
+| 4 | Exams & weekly timetable | ✅ Done |
+| 5 | Grades, configurable GPA scale, study tracker | Next |
 | 6 | Dashboard refinements, validation, error handling, tests | |
 | 7 | Optional AI study assistant (server-side) | |
 | 8 | Polish, accessibility, deployment docs | |
 
-## Known limitations (Stage 3)
+## Known limitations (Stage 4)
 
-- Exams, timetable, grades and study sessions can't be created yet (Stages 4–5).
-- In demo mode only the dashboard shows sample data; the Courses and
-  Assignments pages need a real account, since they save data.
+- Grades and study sessions can't be recorded yet (Stage 5).
+- In demo mode only the dashboard shows sample data; pages that save data
+  need a real account.
+- Timetable classes repeat every week; there's no way yet to skip a week
+  (e.g. a holiday) or add a one-off class.
+- Clicking an empty timetable slot to add a class needs a mouse; keyboard and
+  screen-reader users use the "Add class" button instead.
 - Marking a semester as "current" is two requests (un-mark the old one, then
   mark the new one). If the second fails, no semester is current until you
   try again.

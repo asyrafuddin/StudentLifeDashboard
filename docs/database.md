@@ -103,6 +103,7 @@ and `updated_at` (kept current by a trigger on tables that have it).
 | day_of_week | smallint | 1 = Monday … 7 = Sunday |
 | start_time, end_time | time | end > start |
 | location | text, nullable | |
+| instructor | text, nullable | ≤ 100 chars; overrides the course's instructor (e.g. a lab TA). Added in Stage 4. |
 
 Overlapping sessions are **allowed**. The app highlights clashes instead of
 rejecting them, since real timetables sometimes overlap.
@@ -157,8 +158,10 @@ before deleting.
 
 Never edit a migration that has already been applied to a real database.
 Instead, add a new file in `supabase/migrations/` named
-`YYYYMMDDHHMMSS_short_description.sql`, apply it (SQL Editor or
-`npx supabase db push`), and update `src/types/database.ts` to match.
+`YYYYMMDDHHMMSS_short_description.sql`, apply it (see the migration list in
+[supabase-setup.md](supabase-setup.md)), and update `src/types/database.ts`
+to match. The Stage 4 file `20261014000000_class_session_instructor.sql` is
+an example of this.
 
 ## Testing
 

@@ -18,23 +18,39 @@ It takes about 10 minutes and is free.
    - **Region:** the one closest to you.
 4. Click **Create new project** and wait 1–2 minutes until it's ready.
 
-## 2. Create the database tables (run the migration)
+## 2. Create the database tables (run the migrations)
+
+The database is built by the SQL files in `supabase/migrations/`, applied
+**in filename order, each exactly once**:
+
+| File | Added in | What it does |
+| --- | --- | --- |
+| `20261013000000_initial_schema.sql` | Stage 2 | All tables, constraints and security policies |
+| `20261014000000_class_session_instructor.sql` | Stage 4 | Optional instructor for each timetable class |
 
 **Option A: SQL Editor (easiest)**
 
+For each file above that you haven't run yet:
+
 1. In your project, open **SQL Editor** in the left sidebar.
 2. Click **New query**.
-3. Open `supabase/migrations/20261013000000_initial_schema.sql` from this
-   project in VS Code, select everything (Ctrl+A), copy it, and paste it into
-   the editor.
+3. Open the migration file in VS Code, select everything (Ctrl+A), copy it,
+   and paste it into the editor.
 4. Click **Run**. You should see *"Success. No rows returned"*.
-5. Open **Table Editor**: you should see 10 tables (`profiles`, `semesters`,
-   `courses`, …), each marked as RLS enabled.
 
-Run the file **only once**. Running it again fails with "already exists"
-errors (harmless, but nothing new happens).
+After the first file, **Table Editor** should show 10 tables (`profiles`,
+`semesters`, `courses`, …), each marked as RLS enabled.
 
-**Option B: Supabase CLI** (useful later, when there are several migrations)
+Running a file a second time fails with "already exists" errors. That's
+harmless: nothing changes.
+
+> **Already set up in Stage 2?** You only need to run the Stage 4 file.
+
+**Option B: Supabase CLI** (only if you've used the CLI from the start)
+
+The CLI records which migrations it applied. If you ran earlier files in the
+SQL Editor (Option A), the CLI doesn't know that and would try to run them
+again, so keep using Option A.
 
 ```bash
 npx supabase login

@@ -190,6 +190,22 @@ describe('constraints', () => {
     )
   })
 
+  it('stores an optional instructor per class session, with a length limit', async () => {
+    const [row] = await asUser(ALICE, (tx) =>
+      rows(
+        tx,
+        `insert into class_sessions (course_id, day_of_week, start_time, end_time, instructor)
+         values ($1, 3, '13:00', '14:00', 'TA: Sam') returning instructor`,
+        [ALICE_COURSE],
+      ),
+    )
+    expect(row.instructor).toBe('TA: Sam')
+    await rejects(
+      `insert into class_sessions (course_id, day_of_week, start_time, end_time, instructor) values ($1, 3, '13:00', '14:00', $2)`,
+      [ALICE_COURSE, 'x'.repeat(101)],
+    )
+  })
+
   it('allows only one current semester per user', async () => {
     await rejects(`insert into semesters (name, start_date, end_date, is_current) values ('S2', '2027-01-01', '2027-05-01', true)`)
   })

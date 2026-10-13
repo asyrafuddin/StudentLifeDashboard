@@ -77,7 +77,7 @@ function CoursesContent() {
   const visibleCourses = searchCourses(semesterCourses, search)
 
   const openAddCourse = () =>
-    courseEditor.openCreate(selectedSemesterId === ALL_SEMESTERS ? undefined : selectedSemesterId)
+    courseEditor.openCreate({ semesterId: selectedSemesterId === ALL_SEMESTERS ? undefined : selectedSemesterId })
 
   return (
     <>

@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import type { DayOfWeek } from '@/types/database'
 
 /**
  * Form validation rules, kept in one place so every form (and the tests)
@@ -155,3 +156,52 @@ export const assignmentSchema = z
   }))
 export type AssignmentFormInput = z.input<typeof assignmentSchema>
 export type AssignmentFormValues = z.output<typeof assignmentSchema>
+
+// ---------------------------------------------------------------------------
+// Exams
+// ---------------------------------------------------------------------------
+
+const timeOfDay = z.string().regex(/^\d{2}:\d{2}$/, 'Enter a valid time')
+
+export const examSchema = z
+  .object({
+    course_id: z.string().min(1, 'Choose a course'),
+    title: z.string().trim().min(1, 'Title is required').max(200, 'Keep it under 200 characters'),
+    exam_type: optionalText(50),
+    date: isoDate,
+    time: timeOfDay,
+    location: optionalText(200),
+    notes: optionalText(5000),
+  })
+  // The date + time are the browser's local time, stored as a full timestamp.
+  .transform(({ date, time, ...rest }) => ({
+    ...rest,
+    starts_at: new Date(`${date}T${time}:00`).toISOString(),
+  }))
+export type ExamFormInput = z.input<typeof examSchema>
+export type ExamFormValues = z.output<typeof examSchema>
+
+// ---------------------------------------------------------------------------
+// Class sessions (weekly timetable)
+// ---------------------------------------------------------------------------
+
+export const classSessionSchema = z
+  .object({
+    course_id: z.string().min(1, 'Choose a course'),
+    // From a <select>, so it's a string: '1' (Monday) to '7' (Sunday).
+    day_of_week: z
+      .string()
+      .regex(/^[1-7]$/, 'Choose a day')
+      .transform((v) => Number(v) as DayOfWeek),
+    start_time: timeOfDay,
+    end_time: timeOfDay,
+    location: optionalText(200),
+    instructor: optionalText(100),
+  })
+  // 'HH:MM' strings compare correctly as text.
+  .refine((v) => v.end_time > v.start_time, {
+    message: 'End time must be after the start time',
+    path: ['end_time'],
+  })
+export type ClassSessionFormInput = z.input<typeof classSessionSchema>
+export type ClassSessionFormValues = z.output<typeof classSessionSchema>

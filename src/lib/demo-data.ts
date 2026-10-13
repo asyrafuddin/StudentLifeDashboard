@@ -156,6 +156,7 @@ export function createDemoData(now: Date): DashboardData {
     start_time,
     end_time,
     location,
+    instructor: null,
     created_at: stamp,
     updated_at: stamp,
   })

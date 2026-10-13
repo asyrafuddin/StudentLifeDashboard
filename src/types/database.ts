@@ -93,6 +93,8 @@ export interface ClassSession {
   start_time: TimeOfDay
   end_time: TimeOfDay
   location: string | null
+  /** Overrides the course instructor for this session (e.g. a lab TA). */
+  instructor: string | null
   created_at: IsoTimestamp
   updated_at: IsoTimestamp
 }

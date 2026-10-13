@@ -29,8 +29,8 @@ export function CourseDialogs({ editor, semesters, existingCourseCount }: Course
       >
         {formOpen && (
           <CourseForm
-            course={dialog.kind === 'edit' ? dialog.course : undefined}
-            defaultSemesterId={dialog.kind === 'create' ? dialog.defaultSemesterId : undefined}
+            course={dialog.kind === 'edit' ? dialog.item : undefined}
+            defaultSemesterId={dialog.kind === 'create' ? dialog.defaults?.semesterId : undefined}
             semesters={semesters}
             existingCourseCount={existingCourseCount}
             onSaved={editor.handleSaved}
@@ -39,7 +39,7 @@ export function CourseDialogs({ editor, semesters, existingCourseCount }: Course
         )}
       </FormDialog>
 
-      {dialog.kind === 'delete' && <DeleteCourseDialog course={dialog.course} editor={editor} />}
+      {dialog.kind === 'delete' && <DeleteCourseDialog course={dialog.item} editor={editor} />}
     </>
   )
 }

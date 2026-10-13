@@ -18,8 +18,8 @@ export function AssignmentDialogs({ editor, courses }: { editor: AssignmentEdito
       >
         {formOpen && (
           <AssignmentForm
-            assignment={dialog.kind === 'edit' ? dialog.assignment : undefined}
-            defaultCourseId={dialog.kind === 'create' ? dialog.defaultCourseId : undefined}
+            assignment={dialog.kind === 'edit' ? dialog.item : undefined}
+            defaultCourseId={dialog.kind === 'create' ? dialog.defaults?.courseId : undefined}
             courses={courses}
             onSaved={editor.handleSaved}
             onCancel={editor.close}
@@ -34,13 +34,13 @@ export function AssignmentDialogs({ editor, courses }: { editor: AssignmentEdito
         description={
           dialog.kind === 'delete' && (
             <>
-              <span className="font-medium text-foreground">“{dialog.assignment.title}”</span> will be permanently
+              <span className="font-medium text-foreground">“{dialog.item.title}”</span> will be permanently
               deleted. This can't be undone.
             </>
           )
         }
         confirmLabel="Delete assignment"
-        onConfirm={() => (dialog.kind === 'delete' ? editor.confirmDelete(dialog.assignment) : Promise.resolve())}
+        onConfirm={() => (dialog.kind === 'delete' ? editor.confirmDelete(dialog.item) : Promise.resolve())}
       />
     </>
   )

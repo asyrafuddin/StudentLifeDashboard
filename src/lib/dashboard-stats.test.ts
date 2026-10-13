@@ -145,6 +145,7 @@ describe('getTodaysClasses', () => {
       start_time: start,
       end_time: '23:00:00',
       location: null,
+      instructor: null,
       created_at: '',
       updated_at: '',
     })

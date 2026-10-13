@@ -9,13 +9,6 @@ export async function listCourses(): Promise<Course[]> {
   return data
 }
 
-/** Returns null if the course doesn't exist or belongs to someone else (RLS hides it). */
-export async function getCourse(id: string): Promise<Course | null> {
-  const { data, error } = await requireSupabase().from('courses').select('*').eq('id', id).maybeSingle()
-  if (error) throw error
-  return data
-}
-
 export async function createCourse(values: CourseFormValues): Promise<Course> {
   const { data, error } = await requireSupabase().from('courses').insert(values).select().single()
   if (error) throw error

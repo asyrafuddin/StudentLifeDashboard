@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import {
   assignmentSchema,
+  classSessionSchema,
   courseSchema,
+  examSchema,
   isValidTimezone,
   profileSchema,
   semesterSchema,
@@ -174,5 +176,72 @@ describe('assignmentSchema', () => {
   it('requires a title and a course', () => {
     expect(assignmentSchema.safeParse({ ...valid, title: '  ' }).success).toBe(false)
     expect(assignmentSchema.safeParse({ ...valid, course_id: '' }).success).toBe(false)
+  })
+})
+
+describe('examSchema', () => {
+  const valid = {
+    course_id: 'c1',
+    title: 'Midterm',
+    exam_type: 'Midterm',
+    date: '2026-11-03',
+    time: '09:00',
+    location: '  Hall B ',
+    notes: '',
+  }
+
+  it('combines date and time into a local timestamp and tidies optional text', () => {
+    expect(examSchema.parse(valid)).toEqual({
+      course_id: 'c1',
+      title: 'Midterm',
+      exam_type: 'Midterm',
+      location: 'Hall B',
+      notes: null,
+      starts_at: new Date(2026, 10, 3, 9, 0).toISOString(),
+    })
+  })
+
+  it('requires both a date and a time', () => {
+    expect(examSchema.safeParse({ ...valid, date: '' }).success).toBe(false)
+    expect(examSchema.safeParse({ ...valid, time: '' }).success).toBe(false)
+  })
+
+  it('limits the exam type length like the database', () => {
+    expect(examSchema.safeParse({ ...valid, exam_type: 'x'.repeat(51) }).success).toBe(false)
+  })
+})
+
+describe('classSessionSchema', () => {
+  const valid = {
+    course_id: 'c1',
+    day_of_week: '3',
+    start_time: '09:00',
+    end_time: '10:30',
+    location: 'Room 101',
+    instructor: '',
+  }
+
+  it('converts the day to a number and empty instructor to null', () => {
+    expect(classSessionSchema.parse(valid)).toEqual({
+      course_id: 'c1',
+      day_of_week: 3,
+      start_time: '09:00',
+      end_time: '10:30',
+      location: 'Room 101',
+      instructor: null,
+    })
+  })
+
+  it('rejects an end time at or before the start time, reported on end_time', () => {
+    for (const end_time of ['09:00', '08:59']) {
+      const res = classSessionSchema.safeParse({ ...valid, end_time })
+      expect(res.success, end_time).toBe(false)
+      expect(res.error?.issues[0].path).toEqual(['end_time'])
+    }
+  })
+
+  it('rejects days outside Monday (1) to Sunday (7)', () => {
+    expect(classSessionSchema.safeParse({ ...valid, day_of_week: '0' }).success).toBe(false)
+    expect(classSessionSchema.safeParse({ ...valid, day_of_week: '8' }).success).toBe(false)
   })
 })
