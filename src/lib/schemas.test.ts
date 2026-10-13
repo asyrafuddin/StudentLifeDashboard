@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest'
-import { isValidTimezone, profileSchema, signInSchema, signUpSchema } from '@/lib/schemas'
+import {
+  assignmentSchema,
+  courseSchema,
+  isValidTimezone,
+  profileSchema,
+  semesterSchema,
+  signInSchema,
+  signUpSchema,
+} from '@/lib/schemas'
 
 describe('signInSchema', () => {
   it('trims the email and accepts valid input', () => {
@@ -63,5 +71,108 @@ describe('isValidTimezone', () => {
   it('recognizes IANA names', () => {
     expect(isValidTimezone('Asia/Kuala_Lumpur')).toBe(true)
     expect(isValidTimezone('Nowhere/Special')).toBe(false)
+  })
+})
+
+describe('semesterSchema', () => {
+  const valid = { name: 'Fall 2026', start_date: '2026-09-01', end_date: '2026-12-20', is_current: true }
+
+  it('accepts a valid semester', () => {
+    expect(semesterSchema.safeParse(valid).success).toBe(true)
+  })
+
+  it('rejects an end date before the start date, reported on end_date', () => {
+    const res = semesterSchema.safeParse({ ...valid, end_date: '2026-08-01' })
+    expect(res.success).toBe(false)
+    expect(res.error?.issues[0].path).toEqual(['end_date'])
+  })
+
+  it('requires both dates', () => {
+    expect(semesterSchema.safeParse({ ...valid, start_date: '' }).success).toBe(false)
+  })
+})
+
+describe('courseSchema', () => {
+  const valid = {
+    semester_id: 'sem-1',
+    course_code: ' CS201 ',
+    course_name: 'Data Structures',
+    instructor: '',
+    credits: '3',
+    color: '#6366f1',
+  }
+
+  it('trims text, converts credits to a number and empty instructor to null', () => {
+    expect(courseSchema.parse(valid)).toEqual({
+      semester_id: 'sem-1',
+      course_code: 'CS201',
+      course_name: 'Data Structures',
+      instructor: null,
+      credits: 3,
+      color: '#6366f1',
+    })
+  })
+
+  it('accepts zero and one-decimal credits', () => {
+    expect(courseSchema.parse({ ...valid, credits: '0' }).credits).toBe(0)
+    expect(courseSchema.parse({ ...valid, credits: '1.5' }).credits).toBe(1.5)
+  })
+
+  it('rejects negative, non-numeric, too precise or empty credits', () => {
+    for (const credits of ['-1', 'three', '1.25', '', '100']) {
+      expect(courseSchema.safeParse({ ...valid, credits }).success, credits).toBe(false)
+    }
+  })
+
+  it('rejects colors that are not 6-digit hex', () => {
+    expect(courseSchema.safeParse({ ...valid, color: 'blue' }).success).toBe(false)
+  })
+})
+
+describe('assignmentSchema', () => {
+  const valid = {
+    course_id: 'course-1',
+    title: 'Problem set 4',
+    description: '',
+    due_date: '2026-10-20',
+    due_time: '14:30',
+    priority: 'high' as const,
+    status: 'not_started' as const,
+    estimated_minutes: '90',
+  }
+
+  it('combines date and time into a timestamp (local time)', () => {
+    const res = assignmentSchema.parse(valid)
+    expect(res.due_at).toBe(new Date(2026, 9, 20, 14, 30).toISOString())
+    expect(res).not.toHaveProperty('due_date')
+    expect(res.estimated_minutes).toBe(90)
+    expect(res.description).toBeNull()
+  })
+
+  it('defaults to 11:59 PM when only a date is given', () => {
+    const res = assignmentSchema.parse({ ...valid, due_time: '' })
+    expect(res.due_at).toBe(new Date(2026, 9, 20, 23, 59).toISOString())
+  })
+
+  it('allows no due date at all', () => {
+    expect(assignmentSchema.parse({ ...valid, due_date: '', due_time: '' }).due_at).toBeNull()
+  })
+
+  it('rejects a time without a date', () => {
+    const res = assignmentSchema.safeParse({ ...valid, due_date: '' })
+    expect(res.success).toBe(false)
+    expect(res.error?.issues[0].path).toEqual(['due_date'])
+  })
+
+  it('rejects invalid estimates and unknown priorities', () => {
+    for (const estimated_minutes of ['0', '-5', '1.5', 'abc']) {
+      expect(assignmentSchema.safeParse({ ...valid, estimated_minutes }).success, estimated_minutes).toBe(false)
+    }
+    expect(assignmentSchema.safeParse({ ...valid, priority: 'urgent' }).success).toBe(false)
+  })
+
+  it('requires a title and a course', () => {
+    expect(assignmentSchema.safeParse({ ...valid, title: '  ' }).success).toBe(false)
+    expect(assignmentSchema.safeParse({ ...valid, course_id: '' }).success).toBe(false)
   })
 })

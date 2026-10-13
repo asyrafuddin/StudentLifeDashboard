@@ -1,8 +1,8 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useState } from 'react'
+import { useAsync } from '@/hooks/useAsync'
 import { useAuth } from '@/hooks/useAuth'
 import type { DashboardData } from '@/lib/dashboard-stats'
 import { createDemoData, createEmptyDemoData } from '@/lib/demo-data'
-import { getErrorMessage } from '@/lib/errors'
 import { fetchDashboardData } from '@/services/dashboard'
 
 /**
@@ -18,11 +18,6 @@ export type DashboardDataState =
   | { status: 'error'; message: string; retry: () => void }
   | { status: 'ready'; data: DashboardData; isDemo: boolean }
 
-/** A finished request, tagged with the request it answers. */
-type RemoteResult =
-  | { requestKey: string; status: 'error'; message: string }
-  | { requestKey: string; status: 'ready'; data: DashboardData }
-
 export function useDashboardData(demoVariant: DemoVariant): DashboardDataState {
   const auth = useAuth()
   // Plain strings, so a token refresh (new user object, same person) doesn't re-fetch.
@@ -35,28 +30,11 @@ export function useDashboardData(demoVariant: DemoVariant): DashboardDataState {
     return { sample: createDemoData(now), empty: createEmptyDemoData(now) }
   })
 
-  const [attempt, setAttempt] = useState(0)
-  const retry = useCallback(() => setAttempt((n) => n + 1), [])
-  const [result, setResult] = useState<RemoteResult | null>(null)
-  // Each user + retry combination is a separate request. While the latest
-  // result belongs to an older request, we are "loading".
-  const requestKey = `${userId}:${attempt}`
-
-  useEffect(() => {
-    if (!userId) return
-    // Ignore the response if the user signs out or the page closes mid-request.
-    let cancelled = false
-    const key = `${userId}:${attempt}`
-    fetchDashboardData(userId, email)
-      .then((data) => !cancelled && setResult({ requestKey: key, status: 'ready', data }))
-      .catch((error) => !cancelled && setResult({ requestKey: key, status: 'error', message: getErrorMessage(error) }))
-    return () => {
-      cancelled = true
-    }
-  }, [userId, email, attempt])
+  const loader = useCallback(() => fetchDashboardData(userId!, email), [userId, email])
+  const remote = useAsync(userId ? loader : null)
 
   if (auth.status === 'demo') return { status: 'ready', data: demo[demoVariant], isDemo: true }
-  if (!result || result.requestKey !== requestKey) return { status: 'loading' }
-  if (result.status === 'error') return { status: 'error', message: result.message, retry }
-  return { status: 'ready', data: result.data, isDemo: false }
+  if (remote.status === 'ready') return { status: 'ready', data: remote.data, isDemo: false }
+  if (remote.status === 'error') return remote
+  return { status: 'loading' }
 }

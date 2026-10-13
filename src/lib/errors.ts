@@ -10,6 +10,9 @@ const FRIENDLY_MESSAGES: Array<[RegExp, string]> = [
   [/rate limit|too many requests/i, 'Too many attempts. Please wait a minute and try again.'],
   [/failed to fetch|network/i, "Can't reach the server. Check your internet connection."],
   [/row-level security|permission denied/i, "You don't have permission to do that."],
+  // Specific constraints first, so they beat the generic messages below.
+  [/courses_code_unique_per_semester/i, 'You already have a course with this code in that semester.'],
+  [/delete on table "semesters" violates foreign key/i, 'This semester still has courses. Move or delete them first.'],
   [/violates foreign key constraint/i, 'This item is linked to other records, so it cannot be changed this way.'],
   [/duplicate key value/i, 'An item with these details already exists.'],
   [/violates check constraint/i, 'Some values are not allowed. Please check the form.'],

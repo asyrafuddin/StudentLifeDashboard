@@ -3,6 +3,7 @@ import { PublicOnly, RequireAuth } from '@/components/auth/RouteGuards'
 import { AppLayout } from '@/layouts/AppLayout'
 import { AuthLayout } from '@/layouts/AuthLayout'
 import { AssignmentsPage } from '@/pages/AssignmentsPage'
+import { CourseDetailPage } from '@/pages/CourseDetailPage'
 import { CoursesPage } from '@/pages/CoursesPage'
 import { DashboardPage } from '@/pages/DashboardPage'
 import { ExamsPage } from '@/pages/ExamsPage'
@@ -37,6 +38,7 @@ export const router = createBrowserRouter([
         children: [
           { index: true, element: <DashboardPage /> },
           { path: 'courses', element: <CoursesPage /> },
+          { path: 'courses/:courseId', element: <CourseDetailPage /> },
           { path: 'assignments', element: <AssignmentsPage /> },
           { path: 'exams', element: <ExamsPage /> },
           { path: 'timetable', element: <TimetablePage /> },

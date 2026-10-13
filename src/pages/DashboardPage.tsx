@@ -159,10 +159,10 @@ function DashboardContent({ data }: { data: DashboardData }) {
               description="Start by adding your courses. Assignments, exams, classes and grades are all organized by course."
             >
               <Button asChild>
-                <Link to="/courses">Add your first course</Link>
+                <Link to="/courses?new=1">Add your first course</Link>
               </Button>
               <Button asChild variant="outline">
-                <Link to="/assignments">Add an assignment</Link>
+                <Link to="/assignments?new=1">Add an assignment</Link>
               </Button>
             </EmptyState>
           </CardContent>
