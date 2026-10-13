@@ -1,5 +1,6 @@
 import { GraduationCap } from 'lucide-react'
 import { NavLink } from 'react-router'
+import { AccountMenu } from '@/components/layout/AccountMenu'
 import { NAV_ITEMS, type NavItem, SETTINGS_NAV_ITEM } from '@/config/navigation'
 import { cn } from '@/lib/utils'
 
@@ -23,8 +24,9 @@ export function SidebarNav({ onNavigate }: SidebarNavProps) {
         {NAV_ITEMS.map((item) => (
           <SidebarLink key={item.path} item={item} onNavigate={onNavigate} />
         ))}
-        <div className="mt-auto pt-2">
+        <div className="mt-auto space-y-2 pt-2 pb-3">
           <SidebarLink item={SETTINGS_NAV_ITEM} onNavigate={onNavigate} />
+          <AccountMenu />
         </div>
       </nav>
     </div>

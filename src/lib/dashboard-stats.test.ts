@@ -64,6 +64,15 @@ describe('getUpcomingDeadlines', () => {
     expect(list.map((a) => a.id)).toEqual(['overdue', 'soon', 'later'])
   })
 
+  it('sorts by real time even when timestamps use different UTC offsets', () => {
+    // 09:00 at +08:00 is 01:00 UTC, i.e. earlier than 02:00Z, though it sorts later as text.
+    const list = getUpcomingDeadlines([
+      assignment('utc', '2026-10-20T02:00:00Z'),
+      assignment('plus8', '2026-10-20T09:00:00+08:00'),
+    ])
+    expect(list.map((a) => a.id)).toEqual(['plus8', 'utc'])
+  })
+
   it('respects the limit', () => {
     const many = Array.from({ length: 8 }, (_, i) => assignment(`a${i}`, hoursFromNow(i + 1)))
     expect(getUpcomingDeadlines(many, 3)).toHaveLength(3)

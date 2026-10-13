@@ -16,8 +16,8 @@ export function DemoModeBanner({ variant, onVariantChange }: DemoModeBannerProps
         <div className="text-sm">
           <p className="font-medium">Demo mode: you're looking at sample data</p>
           <p className="text-amber-900/80 dark:text-amber-100/80">
-            Nothing here is real or saved. Sign-in and your own data arrive once Supabase is
-            connected.
+            Nothing here is real or saved. To sign in and use your own data, connect Supabase
+            (see docs/supabase-setup.md).
           </p>
         </div>
       </div>

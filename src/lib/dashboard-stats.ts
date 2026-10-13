@@ -70,6 +70,14 @@ export function pickDefaultSemester(semesters: Semester[]): Semester | null {
 // Deadlines
 // ---------------------------------------------------------------------------
 
+/**
+ * Sorts timestamps by actual time. Comparing the strings would break when they
+ * use different UTC offsets ("…Z" vs "…+08:00").
+ */
+function byTime(a: string, b: string): number {
+  return new Date(a).getTime() - new Date(b).getTime()
+}
+
 /** How many hours ahead counts as "due soon". */
 export const DUE_SOON_HOURS = 48
 
@@ -91,7 +99,7 @@ export function getUpcomingDeadlines(
 ): Assignment[] {
   return assignments
     .filter((a) => a.status !== 'completed' && a.due_at !== null)
-    .sort((a, b) => a.due_at!.localeCompare(b.due_at!))
+    .sort((a, b) => byTime(a.due_at!, b.due_at!))
     .slice(0, limit)
 }
 
@@ -125,7 +133,7 @@ export function getSummaryStats(scope: SemesterScope, now: Date): SummaryStats {
 export function getUpcomingExams(exams: Exam[], now: Date, limit = 5): Exam[] {
   return exams
     .filter((e) => new Date(e.starts_at) >= now)
-    .sort((a, b) => a.starts_at.localeCompare(b.starts_at))
+    .sort((a, b) => byTime(a.starts_at, b.starts_at))
     .slice(0, limit)
 }
 

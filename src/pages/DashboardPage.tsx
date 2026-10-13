@@ -48,8 +48,11 @@ export function DashboardPage() {
       )}
       {state.status === 'error' && (
         <Card>
-          <CardContent className="text-sm text-destructive">
-            Couldn't load the dashboard: {state.message}
+          <CardContent className="flex flex-col items-start gap-3 text-sm sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-destructive">Couldn't load the dashboard: {state.message}</p>
+            <Button variant="outline" size="sm" onClick={state.retry}>
+              Try again
+            </Button>
           </CardContent>
         </Card>
       )}
@@ -81,12 +84,12 @@ function DashboardContent({ data }: { data: DashboardData }) {
   }, [data, semesterId, now])
 
   const { stats, gpa } = view
-  const firstName = data.profile.display_name.split(' ')[0]
+  const firstName = data.profile.display_name.trim().split(' ')[0]
 
   return (
     <>
       <PageHeader
-        title={`${getGreeting(now)}, ${firstName}`}
+        title={firstName ? `${getGreeting(now)}, ${firstName}` : getGreeting(now)}
         description="Here's what's happening in your studies."
         actions={
           data.semesters.length > 0 && (
