@@ -3,10 +3,11 @@
 A web app that helps university students manage courses, deadlines, exams, their
 weekly timetable, grades/GPA and study time in one place.
 
-> **Current status: Stage 4 of 8.** Accounts, the secured database, semesters,
-> courses, assignments (list + calendar), exams with countdowns, and the weekly
-> timetable (with clash detection) are done. Grades/GPA and the study tracker
-> arrive in Stage 5. Without Supabase configured,
+> **Current status: Stage 5 of 8.** All core features work: accounts, semesters,
+> courses, assignments (list + calendar), exams with countdowns, the weekly
+> timetable (with clash detection), grades with a configurable GPA scale, and
+> the study tracker. Stage 6 refines the dashboard, validation and error
+> handling. Without Supabase configured,
 > the app runs in **demo mode**: the dashboard shows clearly labeled sample
 > data, and pages that save data explain that an account is needed.
 
@@ -59,9 +60,11 @@ src/
     dashboard/         Dashboard widgets (stat cards, deadlines, chart, …)
     exams/             Exam list (with countdowns), form and dialogs
     form/              Form building blocks (field with error, select, color picker, dialog)
+    grades/            Per-course grades card, GPA summary, assessment and final-grade forms
     layout/            Sidebar navigation and account menu
     semesters/         Semester selector, form and dialogs
-    settings/          Settings page sections
+    settings/          Settings page sections (profile, grading scale)
+    study/             Study timer, log form, time-by-course, session list
     timetable/         Week grid, phone day-list, clash notice, class form and dialogs
   config/              App-wide config (navigation links)
   hooks/               React hooks (auth, data loading, add/edit/delete editors)
@@ -74,6 +77,8 @@ src/
     exams.ts             Exam countdowns; upcoming vs. past
     timetable.ts         Clash detection and side-by-side layout of overlapping classes
     gpa.ts               Credit-weighted GPA with explained exclusions
+    grades.ts            Weighted course results from assessment scores; scale presets
+    study.ts             Timer, study totals, time per course
     schemas.ts           Zod validation rules for all forms
     supabase.ts          The single Supabase client
     errors.ts            Friendly error messages
@@ -112,7 +117,19 @@ docs/
 | Page workflows | `src/pages/*.test.tsx` | Clicking through real pages in a simulated browser: create, edit, complete and delete assignments; semesters and courses; delete safeguards. The database calls are replaced with in-memory fakes. |
 | Database | `supabase/tests/` | The real migration in an in-memory PostgreSQL: RLS, ownership rules, constraints, delete behavior |
 
-## How GPA is calculated
+## How grades and GPA are calculated
+
+Three levels are kept separate:
+
+1. **Assessment score:** a raw mark, e.g. 42 / 50 (84%).
+2. **Course result (calculated):** the weighted average of graded assessments:
+   `sum(percent × weight) / sum(weight)`. Assessments without a weight are left
+   out rather than guessed. It's labelled with how much of the course is graded
+   so far, and shows "Insufficient data" when it can't be calculated. It's a
+   guide only; it never becomes the official grade automatically.
+3. **Final grade (official):** the letter and/or grade points the student
+   enters (picking a letter from their own grading scale fills in its points).
+   This is what GPA uses.
 
 ```
 GPA = sum(grade points × credits) / sum(credits)
@@ -130,14 +147,19 @@ GPA = sum(grade points × credits) / sum(credits)
 | 2 | Supabase config, migrations, auth, RLS policies | ✅ Done |
 | 3 | Semesters, courses & assignments CRUD | ✅ Done |
 | 4 | Exams & weekly timetable | ✅ Done |
-| 5 | Grades, configurable GPA scale, study tracker | Next |
-| 6 | Dashboard refinements, validation, error handling, tests | |
+| 5 | Grades, configurable GPA scale, study tracker | ✅ Done |
+| 6 | Dashboard refinements, validation, error handling, tests | Next |
 | 7 | Optional AI study assistant (server-side) | |
 | 8 | Polish, accessibility, deployment docs | |
 
-## Known limitations (Stage 4)
+## Known limitations (Stage 5)
 
-- Grades and study sessions can't be recorded yet (Stage 5).
+- Applying a grading-scale preset is two requests (remove the old scale, then
+  add the new one). If the second fails, the scale is left empty; apply the
+  preset again.
+- The grading scale maps letters to points only; it has no percentage
+  ranges, so a calculated course result isn't turned into a letter grade
+  automatically (universities' rules differ too much to guess).
 - In demo mode only the dashboard shows sample data; pages that save data
   need a real account.
 - Timetable classes repeat every week; there's no way yet to skip a week

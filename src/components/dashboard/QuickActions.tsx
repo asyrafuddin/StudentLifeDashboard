@@ -3,14 +3,13 @@ import { Link } from 'react-router'
 import { Button } from '@/components/ui/button'
 
 /**
- * Shortcuts to the pages where records are created. Course, assignment and exam links open the
- * add form directly (?new=1); study sessions arrive in Stage 5.
+ * Shortcuts that open each page's add form directly (?new=1).
  */
 const ACTIONS = [
   { label: 'Add course', to: '/courses?new=1', icon: BookOpen },
   { label: 'Add assignment', to: '/assignments?new=1', icon: ClipboardList },
   { label: 'Add exam', to: '/exams?new=1', icon: NotebookPen },
-  { label: 'Log study session', to: '/study', icon: Timer },
+  { label: 'Log study session', to: '/study?new=1', icon: Timer },
 ]
 
 export function QuickActions() {

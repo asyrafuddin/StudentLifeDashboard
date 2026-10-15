@@ -120,10 +120,21 @@ rejecting them, since real timetables sometimes overlap.
 ### course_results
 | Column | Type | Rules |
 | --- | --- | --- |
-| course_id | uuid | **one result per course** |
-| final_grade_letter | text, nullable | e.g. `A-` |
+| course_id | uuid | **one result per course**: unique on (user_id, course_id), since Stage 5's migration |
+| final_grade_letter | text, nullable | e.g. `A-`, or `Pass` for pass/fail courses |
 | final_grade_points | numeric, nullable | 0–20 (supports scales other than 4.0) |
 | is_finalized | boolean | only finalized results count toward GPA |
+
+The app saves this with an *upsert* (insert, or update if the course already
+has a result). A finalized result without grade points (e.g. "Pass") is kept
+but left out of GPA, with the reason shown.
+
+**Why the uniqueness rule includes `user_id`:** PostgreSQL checks unique
+constraints before foreign keys. With `unique (course_id)` alone, trying to
+add a result to *someone else's* course returned "duplicate key" whenever that
+course already had one, revealing that fact. Including `user_id` means such an
+attempt fails on the ownership check instead, revealing nothing. Each course
+still has at most one result, because a course has exactly one owner.
 
 ### grade_scale_entries
 | Column | Type | Rules |
@@ -132,7 +143,9 @@ rejecting them, since real timetables sometimes overlap.
 | grade_points | numeric | 0–20 |
 
 No scale is pre-filled, because universities differ. Users set theirs up in
-Stage 5.
+**Settings → Grading scale**, optionally starting from a preset they then
+edit. Final grades store their own copy of the grade points, so editing the
+scale later doesn't silently change grades already recorded.
 
 ### study_sessions
 | Column | Type | Rules |
@@ -142,6 +155,11 @@ Stage 5.
 | ended_at | timestamptz, nullable | ≥ started_at; null while running |
 | duration_seconds | integer, nullable | 0–86400 (24 h) |
 | notes | text, nullable | ≤ 2000 chars |
+
+A running timer is a row with `ended_at` = null, saved the moment it starts.
+That's why a timer survives a page refresh. Stopping it fills in `ended_at`
+and `duration_seconds`. A timer left running over 24 hours can't be saved
+as-is (it exceeds the limit), so the app asks for the real duration instead.
 
 ## What happens when something is deleted
 

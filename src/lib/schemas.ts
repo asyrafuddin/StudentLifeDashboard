@@ -205,3 +205,124 @@ export const classSessionSchema = z
   })
 export type ClassSessionFormInput = z.input<typeof classSessionSchema>
 export type ClassSessionFormValues = z.output<typeof classSessionSchema>
+
+// ---------------------------------------------------------------------------
+// Numbers typed into text boxes
+// ---------------------------------------------------------------------------
+
+/**
+ * An optional, non-negative decimal typed as text: '' -> null, '42.5' -> 42.5.
+ * Limits match the database column (e.g. numeric(5,2) -> 2 decimals).
+ */
+function optionalDecimal({
+  max,
+  decimals,
+  greaterThanZero = false,
+  message,
+}: {
+  max: number
+  decimals: number
+  greaterThanZero?: boolean
+  message: string
+}) {
+  const pattern = new RegExp(`^\\d+(\\.\\d{1,${decimals}})?$`)
+  return z
+    .string()
+    .trim()
+    .refine((v) => {
+      if (v === '') return true
+      if (!pattern.test(v)) return false
+      const n = Number(v)
+      return n <= max && (!greaterThanZero || n > 0)
+    }, message)
+    .transform((v) => (v === '' ? null : Number(v)))
+}
+
+// ---------------------------------------------------------------------------
+// Grades
+// ---------------------------------------------------------------------------
+
+export const gradeEntrySchema = z
+  .object({
+    assessment_name: z.string().trim().min(1, 'Name is required').max(150, 'Keep it under 150 characters'),
+    score: optionalDecimal({ max: 999999, decimals: 2, message: 'Use a number of 0 or more (up to 2 decimals)' }),
+    max_score: optionalDecimal({
+      max: 999999,
+      decimals: 2,
+      greaterThanZero: true,
+      message: 'Use a number greater than 0 (up to 2 decimals)',
+    }),
+    weight_percent: optionalDecimal({ max: 100, decimals: 2, message: 'Use a percentage from 0 to 100' }),
+  })
+  // A score only means something next to its maximum.
+  .refine((v) => v.score === null || v.max_score !== null, {
+    message: 'Add the maximum score too',
+    path: ['max_score'],
+  })
+export type GradeEntryFormInput = z.input<typeof gradeEntrySchema>
+export type GradeEntryFormValues = z.output<typeof gradeEntrySchema>
+
+export const courseResultSchema = z
+  .object({
+    final_grade_letter: optionalText(10),
+    final_grade_points: optionalDecimal({ max: 20, decimals: 2, message: 'Use a number from 0 to 20 (up to 2 decimals)' }),
+    is_finalized: z.boolean(),
+  })
+  .refine((v) => !v.is_finalized || v.final_grade_letter !== null || v.final_grade_points !== null, {
+    message: 'Enter a grade before marking it final',
+    path: ['final_grade_letter'],
+  })
+export type CourseResultFormInput = z.input<typeof courseResultSchema>
+export type CourseResultFormValues = z.output<typeof courseResultSchema>
+
+export const gradeScaleEntrySchema = z.object({
+  grade_letter: z.string().trim().min(1, 'Required').max(10, 'Max 10 characters'),
+  grade_points: z
+    .string()
+    .trim()
+    .min(1, 'Required')
+    .refine((v) => /^\d{1,2}(\.\d{1,2})?$/.test(v) && Number(v) <= 20, 'Use 0–20 (up to 2 decimals)')
+    .transform(Number),
+})
+export type GradeScaleEntryFormInput = z.input<typeof gradeScaleEntrySchema>
+export type GradeScaleEntryFormValues = z.output<typeof gradeScaleEntrySchema>
+
+// ---------------------------------------------------------------------------
+// Study sessions
+// ---------------------------------------------------------------------------
+
+/** Course is optional for study sessions: '' means "no specific course". */
+const optionalCourseId = z.string().transform((v) => (v === '' ? null : v))
+
+/** Starting the timer: only the course and a note; times come from the clock. */
+export const studyTimerSchema = z.object({
+  course_id: optionalCourseId,
+  notes: optionalText(2000),
+})
+export type StudyTimerFormInput = z.input<typeof studyTimerSchema>
+export type StudyTimerFormValues = z.output<typeof studyTimerSchema>
+
+/** Logging (or editing) a finished session: start date/time + how long it lasted. */
+export const studyLogSchema = z
+  .object({
+    course_id: optionalCourseId,
+    date: isoDate,
+    start_time: timeOfDay,
+    duration_minutes: z
+      .string()
+      .trim()
+      .refine((v) => /^\d+$/.test(v) && Number(v) >= 1 && Number(v) <= 1440, 'Use whole minutes from 1 to 1440 (24 hours)')
+      .transform(Number),
+    notes: optionalText(2000),
+  })
+  .transform(({ date, start_time, duration_minutes, ...rest }) => {
+    const started = new Date(`${date}T${start_time}:00`) // browser's local time
+    return {
+      ...rest,
+      started_at: started.toISOString(),
+      ended_at: new Date(started.getTime() + duration_minutes * 60_000).toISOString(),
+      duration_seconds: duration_minutes * 60,
+    }
+  })
+export type StudyLogFormInput = z.input<typeof studyLogSchema>
+export type StudyLogFormValues = z.output<typeof studyLogSchema>

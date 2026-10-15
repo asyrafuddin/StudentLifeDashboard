@@ -12,6 +12,7 @@ const FRIENDLY_MESSAGES: Array<[RegExp, string]> = [
   [/row-level security|permission denied/i, "You don't have permission to do that."],
   // Specific constraints first, so they beat the generic messages below.
   [/courses_code_unique_per_semester/i, 'You already have a course with this code in that semester.'],
+  [/grade_scale_letter_unique_per_user/i, 'That letter is already in your grading scale.'],
   [/delete on table "semesters" violates foreign key/i, 'This semester still has courses. Move or delete them first.'],
   [/violates foreign key constraint/i, 'This item is linked to other records, so it cannot be changed this way.'],
   [/duplicate key value/i, 'An item with these details already exists.'],

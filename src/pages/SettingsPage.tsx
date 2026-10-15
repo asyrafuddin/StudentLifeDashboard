@@ -1,6 +1,8 @@
 import { Loader2, LogOut } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router'
 import { PageHeader } from '@/components/PageHeader'
+import { GradeScaleSection } from '@/components/settings/GradeScaleSection'
 import { ProfileForm } from '@/components/settings/ProfileForm'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -25,6 +27,7 @@ export function SettingsPage() {
         {auth.status === 'signed_in' ? (
           <>
             <ProfileSection userId={auth.user.id} />
+            <GradeScaleSection />
             <AccountSection email={auth.user.email ?? ''} />
           </>
         ) : (
@@ -38,13 +41,17 @@ export function SettingsPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Coming in later stages</CardTitle>
+            <CardTitle>Elsewhere in the app</CardTitle>
           </CardHeader>
           <CardContent>
             <ul className="list-disc space-y-1 pl-5 text-sm text-muted-foreground">
-              <li>Semester names and start/end dates (Stage 3, with courses)</li>
-              <li>Your university's GPA grading scale (Stage 5)</li>
-              <li>Light / dark theme (Stage 8)</li>
+              <li>
+                Semester names and start/end dates are managed on{' '}
+                <Link to="/courses" className="font-medium text-primary hover:underline">
+                  My Courses
+                </Link>
+              </li>
+              <li>Light / dark theme: coming in Stage 8</li>
             </ul>
           </CardContent>
         </Card>

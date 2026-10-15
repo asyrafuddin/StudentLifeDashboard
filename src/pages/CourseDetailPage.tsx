@@ -2,7 +2,6 @@ import {
   ArrowLeft,
   CalendarDays,
   ClipboardList,
-  Construction,
   MoreHorizontal,
   NotebookPen,
   Pencil,
@@ -18,12 +17,14 @@ import { ListSkeleton, LoadError } from '@/components/AsyncStatus'
 import { CourseDialogs } from '@/components/courses/CourseDialogs'
 import { EmptyState } from '@/components/EmptyState'
 import { ExamDialogs } from '@/components/exams/ExamDialogs'
+import { CourseGradesCard } from '@/components/grades/CourseGradesCard'
+import { GradeDialogs } from '@/components/grades/GradeDialogs'
 import { ExamList } from '@/components/exams/ExamList'
 import { RequiresAccount } from '@/components/RequiresAccount'
 import { ClassSessionDialogs } from '@/components/timetable/ClassSessionDialogs'
 import { ClassSessionRow } from '@/components/timetable/ClassSessionRow'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -36,6 +37,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { useClassSessionEditor } from '@/hooks/useClassSessionEditor'
 import { useCourseEditor } from '@/hooks/useCourseEditor'
 import { useExamEditor } from '@/hooks/useExamEditor'
+import { useGradesEditor } from '@/hooks/useGradesEditor'
 import { useNow } from '@/hooks/useNow'
 import { sortAssignments } from '@/lib/assignments'
 import { splitExams } from '@/lib/exams'
@@ -44,6 +46,7 @@ import { listAssignments } from '@/services/assignments'
 import { listClassSessions } from '@/services/classSessions'
 import { listCourses } from '@/services/courses'
 import { listExams } from '@/services/exams'
+import { listCourseResults, listGradeEntries, listGradeScale } from '@/services/grades'
 import { listSemesters } from '@/services/semesters'
 import type { Assignment } from '@/types/database'
 import { indexById } from '@/utils/format'
@@ -68,14 +71,17 @@ function CourseDetailContent({ courseId }: { courseId: string }) {
   const loader = useCallback(async () => {
     // All courses and classes are loaded (not just this course's) so the
     // class form can warn about clashes with other courses' classes.
-    const [semesters, courses, assignments, exams, sessions] = await Promise.all([
+    const [semesters, courses, assignments, exams, sessions, gradeEntries, results, scale] = await Promise.all([
       listSemesters(),
       listCourses(),
       listAssignments(courseId),
       listExams(courseId),
       listClassSessions(),
+      listGradeEntries(courseId),
+      listCourseResults(courseId),
+      listGradeScale(),
     ])
-    return { semesters, courses, assignments, exams, sessions }
+    return { semesters, courses, assignments, exams, sessions, gradeEntries, results, scale }
   }, [courseId])
   const state = useAsync(loader)
   const ready = state.status === 'ready' ? state : null
@@ -89,6 +95,7 @@ function CourseDetailContent({ courseId }: { courseId: string }) {
   })
   const examEditor = useExamEditor({ onChanged: reload })
   const classEditor = useClassSessionEditor({ onChanged: reload })
+  const gradesEditor = useGradesEditor({ onChanged: reload })
 
   const view = useMemo(() => {
     if (!ready) return null
@@ -238,23 +245,20 @@ function CourseDetailContent({ courseId }: { courseId: string }) {
           </CourseSection>
         </div>
 
-        <Card size="sm">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Construction className="size-4 text-muted-foreground" aria-hidden />
-              Grades
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="text-sm text-muted-foreground">
-            Recording assessment scores and the final course grade arrives in Stage 5.
-          </CardContent>
-        </Card>
+        <CourseGradesCard
+          course={course}
+          entries={ready.data.gradeEntries}
+          result={ready.data.results[0]}
+          editor={gradesEditor}
+          linkToCourse={false}
+        />
       </div>
 
       <CourseDialogs editor={courseEditor} semesters={ready.data.semesters} existingCourseCount={0} />
       <AssignmentDialogs editor={assignmentEditor} courses={[course]} />
       <ExamDialogs editor={examEditor} courses={[course]} />
       <ClassSessionDialogs editor={classEditor} courses={[course]} existingSessions={view.semesterSessions} />
+      <GradeDialogs editor={gradesEditor} results={ready.data.results} scale={ready.data.scale} />
     </>
   )
 }

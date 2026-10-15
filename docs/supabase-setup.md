@@ -27,6 +27,7 @@ The database is built by the SQL files in `supabase/migrations/`, applied
 | --- | --- | --- |
 | `20261013000000_initial_schema.sql` | Stage 2 | All tables, constraints and security policies |
 | `20261014000000_class_session_instructor.sql` | Stage 4 | Optional instructor for each timetable class |
+| `20261015000000_course_results_unique_per_user.sql` | Stage 5 | Makes "one final grade per course" a per-user rule (closes a small information leak) |
 
 **Option A: SQL Editor (easiest)**
 
@@ -44,7 +45,8 @@ After the first file, **Table Editor** should show 10 tables (`profiles`,
 Running a file a second time fails with "already exists" errors. That's
 harmless: nothing changes.
 
-> **Already set up in Stage 2?** You only need to run the Stage 4 file.
+> **Already set up earlier?** Run only the files you haven't run yet, in order
+> (e.g. after Stage 4, just the Stage 5 file).
 
 **Option B: Supabase CLI** (only if you've used the CLI from the start)
 

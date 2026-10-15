@@ -223,6 +223,30 @@ describe('constraints', () => {
   })
 })
 
+describe('course results', () => {
+  it('saves a final grade with "insert or update" (upsert), keeping one result per course', async () => {
+    const upsert = (points: number) =>
+      asUser(ALICE, (tx) =>
+        tx.query(
+          `insert into course_results (course_id, final_grade_letter, final_grade_points, is_finalized)
+           values ($1, 'A', $2, true)
+           on conflict (user_id, course_id) do update set final_grade_points = excluded.final_grade_points`,
+          [ALICE_COURSE, points],
+        ),
+      )
+    await upsert(4)
+    await upsert(3.7)
+    const results = await asUser(ALICE, (tx) => rows(tx, 'select final_grade_points from course_results'))
+    expect(results).toEqual([{ final_grade_points: '3.70' }])
+  })
+
+  it("can't attach a result to another user's course", async () => {
+    await expect(
+      asUser(BOB, (tx) => tx.query(`insert into course_results (course_id, is_finalized) values ($1, false)`, [ALICE_COURSE])),
+    ).rejects.toThrow(/foreign key/)
+  })
+})
+
 describe('delete behavior', () => {
   it('blocks deleting a semester that still has courses', async () => {
     await expect(
