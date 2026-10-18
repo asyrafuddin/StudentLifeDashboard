@@ -56,7 +56,9 @@ export function SignUpPage() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-lg">Create your account</CardTitle>
+        <CardTitle>
+          <h1 className="text-lg">Create your account</h1>
+        </CardTitle>
         <CardDescription>Organize your courses, deadlines and grades in one place.</CardDescription>
       </CardHeader>
       <CardContent>

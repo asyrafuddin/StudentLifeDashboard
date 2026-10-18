@@ -1,4 +1,5 @@
 import type { CourseResultFormValues, GradeEntryFormValues, GradeScaleEntryFormValues } from '@/lib/schemas'
+import { fetchAllRows } from '@/lib/fetch-all'
 import { requireSupabase } from '@/lib/supabase'
 import type { CourseResult, GradeEntry, GradeScaleEntry } from '@/types/database'
 
@@ -7,11 +8,11 @@ import type { CourseResult, GradeEntry, GradeScaleEntry } from '@/types/database
 // ---------------------------------------------------------------------------
 
 export async function listGradeEntries(courseId?: string): Promise<GradeEntry[]> {
-  let query = requireSupabase().from('grade_entries').select('*').order('created_at')
-  if (courseId) query = query.eq('course_id', courseId)
-  const { data, error } = await query
-  if (error) throw error
-  return data
+  return fetchAllRows((from, to) => {
+    let query = requireSupabase().from('grade_entries').select('*').order('created_at').order('id')
+    if (courseId) query = query.eq('course_id', courseId)
+    return query.range(from, to)
+  })
 }
 
 export async function createGradeEntry(courseId: string, values: GradeEntryFormValues): Promise<GradeEntry> {
@@ -40,11 +41,11 @@ export async function deleteGradeEntry(id: string): Promise<void> {
 // ---------------------------------------------------------------------------
 
 export async function listCourseResults(courseId?: string): Promise<CourseResult[]> {
-  let query = requireSupabase().from('course_results').select('*')
-  if (courseId) query = query.eq('course_id', courseId)
-  const { data, error } = await query
-  if (error) throw error
-  return data
+  return fetchAllRows((from, to) => {
+    let query = requireSupabase().from('course_results').select('*').order('id')
+    if (courseId) query = query.eq('course_id', courseId)
+    return query.range(from, to)
+  })
 }
 
 /** Creates the course's result, or updates it if one exists ("upsert"). */
@@ -68,12 +69,14 @@ export async function deleteCourseResult(courseId: string): Promise<void> {
 // ---------------------------------------------------------------------------
 
 export async function listGradeScale(): Promise<GradeScaleEntry[]> {
-  const { data, error } = await requireSupabase()
-    .from('grade_scale_entries')
-    .select('*')
-    .order('grade_points', { ascending: false })
-  if (error) throw error
-  return data
+  return fetchAllRows((from, to) =>
+    requireSupabase()
+      .from('grade_scale_entries')
+      .select('*')
+      .order('grade_points', { ascending: false })
+      .order('id')
+      .range(from, to),
+  )
 }
 
 export async function createGradeScaleEntry(values: GradeScaleEntryFormValues): Promise<GradeScaleEntry> {

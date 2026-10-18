@@ -34,7 +34,10 @@ export function LoginPage() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-lg">Sign in</CardTitle>
+        <CardTitle>
+          {/* A real heading, so screen-reader users can find the page title. */}
+          <h1 className="text-lg">Sign in</h1>
+        </CardTitle>
         <CardDescription>Welcome back. Sign in to see your dashboard.</CardDescription>
       </CardHeader>
       <CardContent>

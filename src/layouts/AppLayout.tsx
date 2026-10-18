@@ -1,6 +1,7 @@
 import { Menu } from 'lucide-react'
 import { useState } from 'react'
 import { Outlet } from 'react-router'
+import { OfflineBanner } from '@/components/layout/OfflineBanner'
 import { SidebarNav } from '@/components/layout/SidebarNav'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from '@/components/ui/sheet'
@@ -42,6 +43,7 @@ export function AppLayout() {
 
       <main className="lg:pl-60">
         <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+          <OfflineBanner />
           <Outlet />
         </div>
       </main>

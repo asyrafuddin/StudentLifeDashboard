@@ -1,31 +1,32 @@
 import type { DashboardData } from '@/lib/dashboard-stats'
-import { requireSupabase } from '@/lib/supabase'
+import { listAssignments } from '@/services/assignments'
+import { listClassSessions } from '@/services/classSessions'
+import { listCourses } from '@/services/courses'
+import { listExams } from '@/services/exams'
+import { listCourseResults } from '@/services/grades'
 import { getProfile } from '@/services/profile'
+import { listSemesters } from '@/services/semesters'
+import { listStudySessions } from '@/services/study'
 
 /**
- * Loads everything the dashboard needs in parallel.
+ * Loads everything the dashboard needs, in parallel, using the same list
+ * functions as the other pages (so the dashboard gets complete, paged data).
  *
- * There's no `.eq('user_id', …)` filter on purpose: Row Level Security already
- * limits every query to the signed-in user's rows, so filtering here would
- * only duplicate (and could hide bugs in) the database's own security.
+ * There's no `user_id` filter on purpose: Row Level Security already limits
+ * every query to the signed-in user's rows.
  */
 export async function fetchDashboardData(userId: string, email: string): Promise<DashboardData> {
-  const db = requireSupabase()
   const [profile, semesters, courses, assignments, exams, classSessions, courseResults, studySessions] =
     await Promise.all([
       getProfile(userId),
-      db.from('semesters').select('*').order('start_date', { ascending: false }),
-      db.from('courses').select('*').order('course_code'),
-      db.from('assignments').select('*'),
-      db.from('exams').select('*'),
-      db.from('class_sessions').select('*'),
-      db.from('course_results').select('*'),
-      db.from('study_sessions').select('*'),
+      listSemesters(),
+      listCourses(),
+      listAssignments(),
+      listExams(),
+      listClassSessions(),
+      listCourseResults(),
+      listStudySessions(),
     ])
-
-  for (const result of [semesters, courses, assignments, exams, classSessions, courseResults, studySessions]) {
-    if (result.error) throw result.error
-  }
 
   return {
     // Fallback in case the profile row is missing (e.g. account created before the migration ran).
@@ -37,12 +38,12 @@ export async function fetchDashboardData(userId: string, email: string): Promise
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     },
-    semesters: semesters.data ?? [],
-    courses: courses.data ?? [],
-    assignments: assignments.data ?? [],
-    exams: exams.data ?? [],
-    classSessions: classSessions.data ?? [],
-    courseResults: courseResults.data ?? [],
-    studySessions: studySessions.data ?? [],
+    semesters,
+    courses,
+    assignments,
+    exams,
+    classSessions,
+    courseResults,
+    studySessions,
   }
 }

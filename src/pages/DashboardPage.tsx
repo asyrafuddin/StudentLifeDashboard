@@ -6,6 +6,7 @@ import { DemoModeBanner } from '@/components/dashboard/DemoModeBanner'
 import { QuickActions } from '@/components/dashboard/QuickActions'
 import { StatCard } from '@/components/dashboard/StatCard'
 import { StudyTimeChart } from '@/components/dashboard/StudyTimeChart'
+import { TimezoneNotice } from '@/components/dashboard/TimezoneNotice'
 import { TodaySchedule } from '@/components/dashboard/TodaySchedule'
 import { UpcomingDeadlines } from '@/components/dashboard/UpcomingDeadlines'
 import { UpcomingExams } from '@/components/dashboard/UpcomingExams'
@@ -57,12 +58,12 @@ export function DashboardPage() {
         </Card>
       )}
       {/* `key` resets the semester selection when switching demo datasets. */}
-      {state.status === 'ready' && <DashboardContent key={demoVariant} data={state.data} />}
+      {state.status === 'ready' && <DashboardContent key={demoVariant} data={state.data} isDemo={state.isDemo} />}
     </>
   )
 }
 
-function DashboardContent({ data }: { data: DashboardData }) {
+function DashboardContent({ data, isDemo }: { data: DashboardData; isDemo: boolean }) {
   const now = useNow()
   const [semesterId, setSemesterId] = useState(() => pickDefaultSemester(data.semesters)?.id ?? '')
 
@@ -108,6 +109,8 @@ function DashboardContent({ data }: { data: DashboardData }) {
           )
         }
       />
+
+      {!isDemo && <TimezoneNotice profileTimezone={data.profile.timezone} />}
 
       <section aria-label="Summary" className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5">
         <StatCard label="Courses" value={stats.courseCount} icon={BookOpen} hint="Enrolled this semester" />

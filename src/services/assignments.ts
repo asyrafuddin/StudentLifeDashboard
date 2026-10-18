@@ -1,14 +1,19 @@
 import type { AssignmentFormValues } from '@/lib/schemas'
+import { fetchAllRows } from '@/lib/fetch-all'
 import { requireSupabase } from '@/lib/supabase'
 import type { Assignment, AssignmentStatus } from '@/types/database'
 
 /** All of the user's assignments, or only one course's if `courseId` is given. */
 export async function listAssignments(courseId?: string): Promise<Assignment[]> {
-  let query = requireSupabase().from('assignments').select('*').order('due_at', { ascending: true, nullsFirst: false })
-  if (courseId) query = query.eq('course_id', courseId)
-  const { data, error } = await query
-  if (error) throw error
-  return data
+  return fetchAllRows((from, to) => {
+    let query = requireSupabase()
+      .from('assignments')
+      .select('*')
+      .order('due_at', { ascending: true, nullsFirst: false })
+      .order('id') // tie-breaker so paging is stable
+    if (courseId) query = query.eq('course_id', courseId)
+    return query.range(from, to)
+  })
 }
 
 export async function createAssignment(values: AssignmentFormValues): Promise<Assignment> {

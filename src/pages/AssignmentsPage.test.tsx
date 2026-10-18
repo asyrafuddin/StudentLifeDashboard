@@ -186,6 +186,21 @@ describe('Assignments page', () => {
     expect(screen.getByRole('link', { name: 'Add a course' })).toHaveAttribute('href', '/courses?new=1')
   })
 
+  it('keeps the form open with the typed values when saving fails, and says why', async () => {
+    vi.mocked(services.createAssignment).mockRejectedValueOnce({ message: 'Failed to fetch' })
+    const { user } = renderPage(<AssignmentsPage />)
+    await user.click(await screen.findByRole('button', { name: /add assignment/i }))
+    const dialog = await screen.findByRole('dialog')
+    await user.type(within(dialog).getByLabelText('Title'), 'Essay draft')
+    await user.click(within(dialog).getByRole('button', { name: 'Add assignment' }))
+
+    expect(await screen.findByText("Can't reach the server. Check your internet connection.")).toBeInTheDocument()
+    // Nothing the user typed is lost; they can simply try again.
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+    expect(within(dialog).getByLabelText('Title')).toHaveValue('Essay draft')
+    expect(within(dialog).getByRole('button', { name: 'Add assignment' })).toBeEnabled()
+  })
+
   it('opens the add form directly from a ?new=1 link', async () => {
     renderPage(<AssignmentsPage />, { path: '/assignments', url: '/assignments?new=1' })
     expect(await screen.findByRole('dialog', { name: 'Add assignment' })).toBeInTheDocument()

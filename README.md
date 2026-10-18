@@ -3,11 +3,11 @@
 A web app that helps university students manage courses, deadlines, exams, their
 weekly timetable, grades/GPA and study time in one place.
 
-> **Current status: Stage 5 of 8.** All core features work: accounts, semesters,
-> courses, assignments (list + calendar), exams with countdowns, the weekly
-> timetable (with clash detection), grades with a configurable GPA scale, and
-> the study tracker. Stage 6 refines the dashboard, validation and error
-> handling. Without Supabase configured,
+> **Current status: Stage 6 of 8.** All core features work and have been
+> hardened: complete data loading (no silent 1,000-row cut-off), friendly error
+> screens, offline and timezone notices, and 220+ automated tests including
+> database security tests. Stage 7 adds the optional AI study assistant.
+> Without Supabase configured,
 > the app runs in **demo mode**: the dashboard shows clearly labeled sample
 > data, and pages that save data explain that an account is needed.
 
@@ -44,6 +44,7 @@ free Supabase project by following **[docs/supabase-setup.md](docs/supabase-setu
 | `npm run dev` | Start the development server with hot reload |
 | `npm test` | Run all tests once (unit, page workflow, and database tests) |
 | `npm run test:watch` | Re-run tests whenever a file changes |
+| `npm run test:coverage` | Run tests and report which code they cover (`coverage/index.html`) |
 | `npm run lint` | Check code for common mistakes (oxlint) |
 | `npm run build` | Type-check and build the production bundle into `dist/` |
 | `npm run preview` | Serve the production build locally |
@@ -76,6 +77,7 @@ src/
     calendar.ts          Month grid for the calendar view
     exams.ts             Exam countdowns; upcoming vs. past
     timetable.ts         Clash detection and side-by-side layout of overlapping classes
+    fetch-all.ts         Loads every row, page by page (Supabase returns max 1,000 per request)
     gpa.ts               Credit-weighted GPA with explained exclusions
     grades.ts            Weighted course results from assessment scores; scale presets
     study.ts             Timer, study totals, time per course
@@ -109,13 +111,16 @@ docs/
 
 ## Tests
 
-`npm test` runs three kinds of automated tests:
+`npm test` runs everything; no Supabase account or internet needed. The full
+guide, including a **manual checklist for your real Supabase project**, is in
+**[docs/testing.md](docs/testing.md)**.
 
 | Kind | Where | What it checks |
 | --- | --- | --- |
-| Logic | `src/lib/*.test.ts` | GPA, dashboard stats, filtering/sorting, validation rules, error messages |
-| Page workflows | `src/pages/*.test.tsx` | Clicking through real pages in a simulated browser: create, edit, complete and delete assignments; semesters and courses; delete safeguards. The database calls are replaced with in-memory fakes. |
-| Database | `supabase/tests/` | The real migration in an in-memory PostgreSQL: RLS, ownership rules, constraints, delete behavior |
+| Logic | `src/lib/*.test.ts` | GPA, grades, dashboard stats, study totals, timetable clashes, validation rules |
+| Page workflows | `src/pages/*.test.tsx` and others | Clicking through real pages in a simulated browser (database replaced by fakes): create/edit/delete, errors, empty states |
+| Navigation | `src/router.test.tsx` | Signed-out users can't reach private pages; crash screen |
+| Database | `supabase/tests/` | Real migrations in an in-memory PostgreSQL: RLS, ownership, constraints, and that every value a form accepts fits the database |
 
 ## How grades and GPA are calculated
 
@@ -148,11 +153,11 @@ GPA = sum(grade points × credits) / sum(credits)
 | 3 | Semesters, courses & assignments CRUD | ✅ Done |
 | 4 | Exams & weekly timetable | ✅ Done |
 | 5 | Grades, configurable GPA scale, study tracker | ✅ Done |
-| 6 | Dashboard refinements, validation, error handling, tests | Next |
-| 7 | Optional AI study assistant (server-side) | |
+| 6 | Dashboard refinements, validation, error handling, tests | ✅ Done |
+| 7 | Optional AI study assistant (server-side) | Next |
 | 8 | Polish, accessibility, deployment docs | |
 
-## Known limitations (Stage 5)
+## Known limitations (Stage 6)
 
 - Applying a grading-scale preset is two requests (remove the old scale, then
   add the new one). If the second fails, the scale is left empty; apply the
@@ -170,8 +175,8 @@ GPA = sum(grade points × credits) / sum(credits)
   mark the new one). If the second fails, no semester is current until you
   try again.
 - No "forgot password" flow yet. Planned for Stage 8.
-- Dates and times display in the browser's timezone; the timezone saved in
-  Settings isn't applied to display yet.
+- Dates and times are shown in the device's timezone. The timezone in your
+  profile isn't used for display; the dashboard points out when the two differ.
 - Signing up with an email that already exists shows the same "check your email"
   screen. This is Supabase's deliberate protection against revealing which
   emails have accounts.

@@ -1,15 +1,13 @@
 import type { SemesterFormValues } from '@/lib/schemas'
+import { fetchAllRows } from '@/lib/fetch-all'
 import { requireSupabase } from '@/lib/supabase'
 import type { Semester } from '@/types/database'
 
 /** Newest first. RLS limits results to the signed-in user's semesters. */
 export async function listSemesters(): Promise<Semester[]> {
-  const { data, error } = await requireSupabase()
-    .from('semesters')
-    .select('*')
-    .order('start_date', { ascending: false })
-  if (error) throw error
-  return data
+  return fetchAllRows((from, to) =>
+    requireSupabase().from('semesters').select('*').order('start_date', { ascending: false }).order('id').range(from, to),
+  )
 }
 
 /**

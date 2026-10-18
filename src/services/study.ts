@@ -1,16 +1,22 @@
 import { elapsedSeconds, MAX_SESSION_SECONDS } from '@/lib/study'
 import type { StudyLogFormValues, StudyTimerFormValues } from '@/lib/schemas'
+import { fetchAllRows } from '@/lib/fetch-all'
 import { requireSupabase } from '@/lib/supabase'
 import type { StudySession } from '@/types/database'
 
-/** Most recent first. */
+/**
+ * Most recent first. Paged, because this is the table most likely to pass
+ * Supabase's 1,000-rows-per-request limit (daily sessions over a few years).
+ */
 export async function listStudySessions(): Promise<StudySession[]> {
-  const { data, error } = await requireSupabase()
-    .from('study_sessions')
-    .select('*')
-    .order('started_at', { ascending: false })
-  if (error) throw error
-  return data
+  return fetchAllRows((from, to) =>
+    requireSupabase()
+      .from('study_sessions')
+      .select('*')
+      .order('started_at', { ascending: false })
+      .order('id')
+      .range(from, to),
+  )
 }
 
 /**

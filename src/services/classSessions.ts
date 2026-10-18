@@ -1,14 +1,15 @@
 import type { ClassSessionFormValues } from '@/lib/schemas'
+import { fetchAllRows } from '@/lib/fetch-all'
 import { requireSupabase } from '@/lib/supabase'
 import type { ClassSession } from '@/types/database'
 
 /** All of the user's class sessions (or one course's), by day then start time. */
 export async function listClassSessions(courseId?: string): Promise<ClassSession[]> {
-  let query = requireSupabase().from('class_sessions').select('*').order('day_of_week').order('start_time')
-  if (courseId) query = query.eq('course_id', courseId)
-  const { data, error } = await query
-  if (error) throw error
-  return data
+  return fetchAllRows((from, to) => {
+    let query = requireSupabase().from('class_sessions').select('*').order('day_of_week').order('start_time').order('id')
+    if (courseId) query = query.eq('course_id', courseId)
+    return query.range(from, to)
+  })
 }
 
 export async function createClassSession(values: ClassSessionFormValues): Promise<ClassSession> {

@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 /** Workflow tests for the Study Tracker: timer start/stop, logging, and the 24-hour safeguard. */
 import { screen, waitFor, within } from '@testing-library/react'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { StudyPage } from '@/pages/StudyPage'
 import { renderPage } from '@/test/render'
 import type { Course, Semester, StudySession } from '@/types/database'
@@ -37,10 +37,17 @@ const minutesAgo = (m: number) => new Date(Date.now() - m * 60_000).toISOString(
 
 beforeEach(() => {
   vi.clearAllMocks()
+  // Pin the clock to midday. "Today" counts sessions by the day they started,
+  // so a session started "30 minutes ago" just after midnight belongs to
+  // yesterday. Only Date is faked; timers run normally for user clicks.
+  vi.useFakeTimers({ toFake: ['Date'] })
+  vi.setSystemTime(new Date(2026, 9, 14, 12, 0))
   db.semesters = [{ id: 'fall', name: 'Fall 2026', is_current: true } as Semester]
   db.courses = [{ id: 'cs', course_code: 'CS201', course_name: 'Data Structures', semester_id: 'fall', color: '#6366f1' } as Course]
   db.sessions = []
 })
+
+afterEach(() => vi.useRealTimers())
 
 describe('Study Tracker', () => {
   it('starts a timer that is saved immediately', async () => {

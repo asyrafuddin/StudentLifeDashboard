@@ -67,7 +67,8 @@ export function ProfileForm({ profile, onSaved }: ProfileFormProps) {
       <FormField
         label="Timezone"
         error={errors.timezone?.message}
-        hint={`Used for deadlines and schedules. Your browser reports ${browserTimezone}.`}
+        // Honest about what this does: the app displays times in device time.
+        hint={`Your usual timezone. Times are shown in this device's timezone (${browserTimezone}); the dashboard tells you if the two differ.`}
       >
         <NativeSelect {...register('timezone')}>
           {timezones.map((tz) => (

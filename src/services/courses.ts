@@ -1,12 +1,13 @@
 import type { CourseRelatedCounts } from '@/lib/courses'
 import type { CourseFormValues } from '@/lib/schemas'
+import { fetchAllRows } from '@/lib/fetch-all'
 import { requireSupabase } from '@/lib/supabase'
 import type { Course } from '@/types/database'
 
 export async function listCourses(): Promise<Course[]> {
-  const { data, error } = await requireSupabase().from('courses').select('*').order('course_code')
-  if (error) throw error
-  return data
+  return fetchAllRows((from, to) =>
+    requireSupabase().from('courses').select('*').order('course_code').order('id').range(from, to),
+  )
 }
 
 export async function createCourse(values: CourseFormValues): Promise<Course> {
