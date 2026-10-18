@@ -34,6 +34,8 @@ in-memory fakes.
 | **Validation** | `src/lib/schemas*.test.ts` | Every form's rules: required fields, number formats and ranges, dates and times, end-after-start, text limits |
 | **Page workflows** | `src/pages/*.test.tsx`, `src/components/**/*.test.tsx` | Clicking through real pages in a simulated browser: create, edit, complete, delete; validation messages; delete safeguards; failed saves keep the form open; empty states; load errors with retry |
 | **Navigation & security in the app** | `src/router.test.tsx` | Signed-out visitors can't reach any private page; signed-in users skip the login page; demo mode is labelled; the crash screen |
+| **Password reset** | `src/pages/PasswordReset.test.tsx`, `src/hooks/usePasswordRecoveryRedirect.test.tsx` | Request a link (without revealing who has an account); choose a new password; expired links; reset links always lead to "choose a new password" |
+| **Accessibility** | `src/test/accessibility.test.tsx`, `src/layouts/AppLayout.test.tsx` | axe-core finds no problems on any page (labels, names, ARIA, heading order…); skip link; page titles; focus moves to the new page after navigating |
 | **Data loading** | `src/hooks/useAsync.test.tsx`, `src/lib/fetch-all.test.ts` | Refresh keeps data on screen; failed refresh keeps data; refresh on returning to the tab; paging past Supabase's 1,000-row limit |
 | **Database security** | `supabase/tests/database.test.ts` | The real migrations in PostgreSQL: users can't see, change, delete or link to other users' data (RLS + ownership checks); constraints; what deleting a course or semester does |
 | **Forms vs. database** | `supabase/tests/schema-parity.test.ts` | The longest text and largest numbers each form accepts are also accepted by the database |
@@ -100,6 +102,21 @@ After following [ai-assistant.md](ai-assistant.md):
 ### 4. Looks right on your devices
 
 Open the app on a phone (or a narrow browser window) and check that every page
-fits the screen without sideways scrolling.
+fits the screen without sideways scrolling. Switch to dark mode (sidebar,
+next to your email) and check that everything is readable.
+
+### 5. Keyboard only (5 minutes)
+
+Put the mouse aside and use **Tab**, **Shift+Tab**, **Enter**, **Space**,
+**Esc** and the arrow keys:
+
+- [ ] The first Tab shows **Skip to main content**; Enter jumps past the menu
+- [ ] You can always see where the focus is
+- [ ] Add, edit and delete an assignment; open and close the menus and dialogs
+      (Esc closes them, and focus returns to where you were)
+- [ ] Start and stop the study timer
+
+Color contrast was checked automatically in a real browser (axe-core, light
+and dark themes, all app pages: no problems). Re-check after changing colors.
 
 If anything fails, note the steps and the exact message shown.

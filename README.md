@@ -3,11 +3,12 @@
 A web app that helps university students manage courses, deadlines, exams, their
 weekly timetable, grades/GPA and study time in one place.
 
-> **Current status: Stage 7 of 8.** All core features work, plus a **Study
-> Assistant** that suggests what to work on next: a rule-based plan out of
-> the box, and optional free AI suggestions (Google Gemini) through a secure
-> server-side function. 260+ automated tests, including database security
-> tests. Stage 8 is polish, accessibility and deployment docs.
+> **Status: complete (all 8 stages).** Courses, assignments, exams,
+> timetable, grades/GPA, a study tracker, and a **Study Assistant** (rule-based
+> plan, plus optional free AI suggestions via Google Gemini through a secure
+> server-side function). Password reset, light/dark theme, accessibility
+> checks, and a deployment guide. 300+ automated tests, including database
+> security and accessibility tests.
 > Without Supabase configured,
 > the app runs in **demo mode**: the dashboard shows clearly labeled sample
 > data, and pages that save data explain that an account is needed.
@@ -38,7 +39,8 @@ npm run dev       # start the dev server at http://localhost:5173
 That runs the app in **demo mode**. To sign up and save real data, connect a
 free Supabase project by following **[docs/supabase-setup.md](docs/supabase-setup.md)**
 (about 10 minutes). The optional AI suggestions need a few more steps:
-**[docs/ai-assistant.md](docs/ai-assistant.md)**.
+**[docs/ai-assistant.md](docs/ai-assistant.md)**. To put the app online, see
+**[docs/deployment.md](docs/deployment.md)**.
 
 ### Scripts
 
@@ -105,6 +107,7 @@ supabase/
 docs/
   supabase-setup.md    How to connect Supabase
   ai-assistant.md      Optional AI suggestions: setup, privacy, troubleshooting
+  deployment.md        Putting the app online (Vercel or Netlify)
   database.md          Schema reference and security model
   testing.md           Running tests, and the manual checklist
 ```
@@ -137,6 +140,19 @@ guide, including a **manual checklist for your real Supabase project**, is in
 | Navigation | `src/router.test.tsx` | Signed-out users can't reach private pages; crash screen |
 | Database | `supabase/tests/` | Real migrations in an in-memory PostgreSQL: RLS, ownership, constraints, the AI daily limit, and that every value a form accepts fits the database |
 | AI endpoint | `supabase/tests/study-assistant-function.test.ts` | Sign-in, request checks, daily limit, safe errors, the key never leaks |
+
+## Accessibility
+
+- Every page is checked automatically with [axe-core](https://github.com/dequelabs/axe-core)
+  (`src/test/accessibility.test.tsx`). Color contrast was checked in a real
+  browser in light and dark mode (WCAG AA).
+- Keyboard: a **Skip to main content** link, visible focus outlines, all
+  actions reachable without a mouse, and focus moves to the new page after
+  navigating. Each page has its own browser-tab title.
+- Screen readers: labelled form fields with announced errors, real headings
+  in order, status and urgency shown with words and icons (never color alone).
+- Respects the device's **reduce motion** setting, and offers light, dark or
+  device theme.
 
 ## How grades and GPA are calculated
 
@@ -171,9 +187,9 @@ GPA = sum(grade points × credits) / sum(credits)
 | 5 | Grades, configurable GPA scale, study tracker | ✅ Done |
 | 6 | Dashboard refinements, validation, error handling, tests | ✅ Done |
 | 7 | Optional AI study assistant (server-side) | ✅ Done |
-| 8 | Polish, accessibility, deployment docs | Next |
+| 8 | Password reset, dark mode, accessibility, faster loading, deployment docs | ✅ Done |
 
-## Known limitations (Stage 7)
+## Known limitations
 
 - Applying a grading-scale preset is two requests (remove the old scale, then
   add the new one). If the second fails, the scale is left empty; apply the
@@ -190,7 +206,6 @@ GPA = sum(grade points × credits) / sum(credits)
 - Marking a semester as "current" is two requests (un-mark the old one, then
   mark the new one). If the second fails, no semester is current until you
   try again.
-- No "forgot password" flow yet. Planned for Stage 8.
 - Dates and times are shown in the device's timezone. The timezone in your
   profile isn't used for display; the dashboard points out when the two differ.
 - Signing up with an email that already exists shows the same "check your email"
@@ -200,5 +215,7 @@ GPA = sum(grade points × credits) / sum(credits)
   rule-based plan. The assistant plans for the current semester only.
 - The AI daily limit (20 requests per user per 24 hours) is fixed in the
   database; changing it needs a new migration.
-- The production JS bundle is ~1 MB (~320 kB gzipped), mostly the chart and
-  Supabase libraries; code-splitting is planned for Stage 8.
+- The theme choice is saved per browser, not to your account.
+- `npm audit` reports issues in the `shadcn` command-line tool's dependencies.
+  The project keeps that package only for a CSS file, and none of its code
+  is included in the app that runs in the browser.

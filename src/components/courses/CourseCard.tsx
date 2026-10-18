@@ -28,7 +28,7 @@ export function CourseCard({ course, semesterName, pendingCount, completedCount,
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
             <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">{course.course_code}</p>
-            <h3 className="mt-0.5 font-semibold leading-snug">
+            <h2 className="mt-0.5 font-semibold leading-snug">
               {/* The whole card is clickable via this link's ::after overlay. */}
               <Link
                 to={`/courses/${course.id}`}
@@ -36,7 +36,7 @@ export function CourseCard({ course, semesterName, pendingCount, completedCount,
               >
                 {course.course_name}
               </Link>
-            </h3>
+            </h2>
           </div>
           {/* `relative` lifts the menu above the card-wide link so it stays clickable. */}
           <DropdownMenu>

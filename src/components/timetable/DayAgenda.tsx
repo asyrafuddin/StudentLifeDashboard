@@ -25,10 +25,10 @@ export function DayAgenda({ sessions, coursesById, clashMap, editor, now }: DayA
           .sort((a, b) => timeToMinutes(a.start_time) - timeToMinutes(b.start_time))
         return (
           <section key={d.value} aria-label={d.long}>
-            <h3 className="mb-2 flex items-center gap-2 text-sm font-medium">
+            <h2 className="mb-2 flex items-center gap-2 text-sm font-medium">
               {d.long}
               {d.value === today && <Badge>Today</Badge>}
-            </h3>
+            </h2>
             {daySessions.length === 0 ? (
               <p className="text-xs text-muted-foreground">No classes</p>
             ) : (

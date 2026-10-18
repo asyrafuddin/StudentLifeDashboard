@@ -1,6 +1,7 @@
-import { AlertTriangle, RotateCcw } from 'lucide-react'
+import { AlertTriangle, RotateCcw, Sparkles } from 'lucide-react'
 import { isRouteErrorResponse, Link, useRouteError } from 'react-router'
 import { Button } from '@/components/ui/button'
+import { isOutdatedAppError } from '@/lib/errors'
 
 /**
  * Shown instead of a page that crashed while rendering, so the user sees a
@@ -16,6 +17,23 @@ export function RouteError() {
       ? error.message
       : String(error)
   console.error(error)
+
+  if (isOutdatedAppError(detail)) {
+    return (
+      <div role="alert" className="mx-auto flex max-w-md flex-col items-center px-4 py-16 text-center">
+        <div className="mb-4 flex size-12 items-center justify-center rounded-full bg-primary/10">
+          <Sparkles className="size-6 text-primary" aria-hidden />
+        </div>
+        <h1 className="text-lg font-semibold">A new version of the app is available</h1>
+        <p className="mt-2 text-sm text-muted-foreground">
+          The app was updated while this tab was open. Reload to continue; your saved data is safe.
+        </p>
+        <Button className="mt-6" onClick={() => window.location.reload()}>
+          <RotateCcw aria-hidden /> Reload
+        </Button>
+      </div>
+    )
+  }
 
   return (
     <div role="alert" className="mx-auto flex max-w-md flex-col items-center px-4 py-16 text-center">

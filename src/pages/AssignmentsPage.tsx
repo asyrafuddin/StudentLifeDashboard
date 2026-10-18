@@ -11,7 +11,6 @@ import { PageHeader } from '@/components/PageHeader'
 import { RequiresAccount } from '@/components/RequiresAccount'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useAssignmentEditor } from '@/hooks/useAssignmentEditor'
 import { useAsync } from '@/hooks/useAsync'
 import { useAuth } from '@/hooks/useAuth'
@@ -87,16 +86,26 @@ function AssignmentsContent() {
         actions={
           hasCourses && (
             <>
-              <Tabs value={view} onValueChange={(v) => setView(v as 'list' | 'calendar')}>
-                <TabsList>
-                  <TabsTrigger value="list">
-                    <List aria-hidden /> List
-                  </TabsTrigger>
-                  <TabsTrigger value="calendar">
-                    <CalendarDays aria-hidden /> Calendar
-                  </TabsTrigger>
-                </TabsList>
-              </Tabs>
+              {/* Two toggle buttons (not tabs): the views they switch aren't tab panels. */}
+              <div role="group" aria-label="View" className="inline-flex rounded-lg bg-muted p-[3px]">
+                {(
+                  [
+                    ['list', 'List', List],
+                    ['calendar', 'Calendar', CalendarDays],
+                  ] as const
+                ).map(([value, label, Icon]) => (
+                  <Button
+                    key={value}
+                    size="sm"
+                    variant="ghost"
+                    aria-pressed={view === value}
+                    onClick={() => setView(value)}
+                    className={view === value ? 'bg-background shadow-sm hover:bg-background' : 'text-muted-foreground'}
+                  >
+                    <Icon aria-hidden /> {label}
+                  </Button>
+                ))}
+              </div>
               <Button onClick={() => editor.openCreate()}>
                 <Plus aria-hidden /> Add assignment
               </Button>

@@ -50,3 +50,19 @@ export function renderPage(
     { url, auth },
   )
 }
+
+/**
+ * The route table with every on-demand page already loaded, so tests don't
+ * depend on how fast pages load on a busy machine. (router.test.tsx still
+ * checks the real on-demand loading.)
+ */
+export async function preloadRoutes(table: RouteObject[]): Promise<RouteObject[]> {
+  return Promise.all(
+    table.map(async (route) => {
+      const { lazy, children, ...rest } = route
+      const loaded = typeof lazy === 'function' ? await lazy() : {}
+      const kids = children ? await preloadRoutes(children) : undefined
+      return { ...rest, ...loaded, ...(kids ? { children: kids } : {}) } as RouteObject
+    }),
+  )
+}

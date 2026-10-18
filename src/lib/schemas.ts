@@ -18,21 +18,34 @@ export const signInSchema = z.object({
 })
 export type SignInValues = z.infer<typeof signInSchema>
 
+/** Rules for choosing a password (sign-up and password reset). 72 is Supabase's maximum. */
+const newPassword = z
+  .string()
+  .min(PASSWORD_MIN_LENGTH, `Use at least ${PASSWORD_MIN_LENGTH} characters`)
+  .max(72, 'Use at most 72 characters')
+
+const passwordsMatch = {
+  check: (v: { password: string; confirmPassword: string }) => v.password === v.confirmPassword,
+  params: { message: "Passwords don't match", path: ['confirmPassword'] },
+}
+
 export const signUpSchema = z
   .object({
     displayName: z.string().trim().min(1, 'Your name is required').max(100, 'Keep it under 100 characters'),
     email,
-    password: z
-      .string()
-      .min(PASSWORD_MIN_LENGTH, `Use at least ${PASSWORD_MIN_LENGTH} characters`)
-      .max(72, 'Use at most 72 characters'),
+    password: newPassword,
     confirmPassword: z.string(),
   })
-  .refine((v) => v.password === v.confirmPassword, {
-    message: "Passwords don't match",
-    path: ['confirmPassword'],
-  })
+  .refine(passwordsMatch.check, passwordsMatch.params)
 export type SignUpValues = z.infer<typeof signUpSchema>
+
+export const forgotPasswordSchema = z.object({ email })
+export type ForgotPasswordValues = z.infer<typeof forgotPasswordSchema>
+
+export const newPasswordSchema = z
+  .object({ password: newPassword, confirmPassword: z.string() })
+  .refine(passwordsMatch.check, passwordsMatch.params)
+export type NewPasswordValues = z.infer<typeof newPasswordSchema>
 
 /** True if the browser recognizes this IANA timezone name (e.g. "Asia/Kuala_Lumpur"). */
 export function isValidTimezone(tz: string): boolean {

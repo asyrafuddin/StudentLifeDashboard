@@ -61,7 +61,9 @@
     --secondary: oklch(0.97 0 0);
     --secondary-foreground: oklch(0.205 0 0);
     --muted: oklch(0.97 0 0);
-    --muted-foreground: oklch(0.556 0 0);
+    /* Slightly darker than shadcn's default (0.556), so secondary text stays readable
+       (WCAG AA, 4.5:1) on the light-gray backgrounds used for badges and rows. */
+    --muted-foreground: oklch(0.52 0 0);
     --accent: oklch(0.97 0 0);
     --accent-foreground: oklch(0.205 0 0);
     --destructive: oklch(0.577 0.245 27.325);
@@ -128,4 +130,21 @@
   html {
     @apply font-sans;
     }
+}
+/* Navigation progress bar (AppLayout). */
+@keyframes nav-progress {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(300%); }
+}
+
+/* Respect the "reduce motion" setting: no sliding, spinning or fading. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

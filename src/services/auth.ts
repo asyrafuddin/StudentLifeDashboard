@@ -30,3 +30,23 @@ export async function signUp({ displayName, email, password }: SignUpValues): Pr
   if (error) throw error
   return { needsEmailConfirmation: data.session === null }
 }
+
+/** Where the "reset your password" email link sends people. */
+export const UPDATE_PASSWORD_PATH = '/update-password'
+
+/**
+ * Emails a password-reset link. Supabase gives the same response whether or
+ * not the email has an account, so this never reveals who is signed up.
+ */
+export async function requestPasswordReset(email: string): Promise<void> {
+  const { error } = await requireSupabase().auth.resetPasswordForEmail(email, {
+    redirectTo: `${window.location.origin}${UPDATE_PASSWORD_PATH}`,
+  })
+  if (error) throw error
+}
+
+/** Sets a new password for the signed-in user (including someone who arrived via a reset link). */
+export async function updatePassword(password: string): Promise<void> {
+  const { error } = await requireSupabase().auth.updateUser({ password })
+  if (error) throw error
+}

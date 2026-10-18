@@ -7,8 +7,10 @@ import { afterEach } from 'vitest'
 if (typeof window !== 'undefined') {
   // Adds matchers like expect(element).toBeInTheDocument().
   await import('@testing-library/jest-dom/vitest')
-  const { cleanup } = await import('@testing-library/react')
+  const { cleanup, configure } = await import('@testing-library/react')
   afterEach(() => cleanup())
+  // "findBy…" waits up to 1 s by default; allow more when the whole suite runs at once.
+  configure({ asyncUtilTimeout: 3000 })
 
   // jsdom lacks a few browser APIs that Radix UI (dialogs, menus) relies on.
   window.ResizeObserver ??= class {

@@ -7,6 +7,11 @@ const FRIENDLY_MESSAGES: Array<[RegExp, string]> = [
   [/email not confirmed/i, 'Please confirm your email first. Check your inbox for the link.'],
   [/user already registered/i, 'An account with this email already exists. Try signing in.'],
   [/password should be at least/i, 'Password is too short.'],
+  [/should be different from the old password/i, 'Choose a password different from your current one.'],
+  [/auth session missing|session.*expired|invalid.*refresh token/i, 'Your session has expired. Please sign in again.'],
+  [/reauthentication|nonce/i, 'For security, please sign out, sign in again, then change your password.'],
+  [/weak.?password|pwned|leaked/i, 'That password is too easy to guess or has appeared in a data leak. Choose another.'],
+  [/for security purposes, you can only request this/i, 'Please wait a minute before requesting another email.'],
   [/rate limit|too many requests/i, 'Too many attempts. Please wait a minute and try again.'],
   [/failed to fetch|network/i, "Can't reach the server. Check your internet connection."],
   [/row-level security|permission denied/i, "You don't have permission to do that."],
@@ -32,4 +37,14 @@ export function getErrorMessage(error: unknown): string {
   }
   console.error(error)
   return raw || 'Something went wrong. Please try again.'
+}
+
+/**
+ * After a new version is deployed, an old open tab may ask for page files
+ * that no longer exist. Browsers word this error differently.
+ */
+export function isOutdatedAppError(message: string): boolean {
+  return /dynamically imported module|importing a module script failed|error loading dynamically imported|failed to load module script/i.test(
+    message,
+  )
 }

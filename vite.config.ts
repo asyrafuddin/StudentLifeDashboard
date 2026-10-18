@@ -17,6 +17,10 @@ export default defineConfig({
   test: {
     // Runs before every test file (adds DOM matchers and browser polyfills).
     setupFiles: ['./src/test/setup.ts'],
+    // Page tests click through real pages in a simulated browser; with the
+    // whole suite running in parallel, a slow machine can need more than the
+    // default 5 seconds. This only matters when something is slow, not wrong.
+    testTimeout: 15_000,
     // `npm run test:coverage`: which lines of our own code the tests run.
     coverage: {
       provider: 'v8',

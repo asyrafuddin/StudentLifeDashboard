@@ -4,7 +4,7 @@
  * demo users can reach, and the friendly screen shown when a page crashes.
  */
 import { screen, waitFor } from '@testing-library/react'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { RouteError } from '@/components/RouteError'
 import { routes } from '@/router'
 import { renderRoutes } from '@/test/render'
@@ -22,6 +22,12 @@ vi.mock('@/services/dashboard', () => ({
     studySessions: [],
   })),
 }))
+
+// Pages load on demand. Compiling them for the first time is slow in the test
+// runner, so do it once up front; the tests then check behavior, not compile speed.
+beforeAll(async () => {
+  await Promise.all([import('@/pages/LoginPage'), import('@/pages/DashboardPage'), import('@/pages/NotFoundPage')])
+}, 60_000)
 
 beforeEach(() => vi.clearAllMocks())
 

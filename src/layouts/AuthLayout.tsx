@@ -1,8 +1,10 @@
 import { GraduationCap } from 'lucide-react'
 import { Outlet } from 'react-router'
+import { usePageTitle } from '@/hooks/usePageTitle'
 
 /** Centered card layout for the sign-in and sign-up pages. */
 export function AuthLayout() {
+  usePageTitle()
   return (
     <div className="flex min-h-svh flex-col items-center justify-center bg-background px-4 py-10">
       <div className="mb-6 flex items-center gap-2">

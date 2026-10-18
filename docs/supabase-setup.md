@@ -99,8 +99,9 @@ bypasses all security rules and must never be in browser code.
 3. Under **Redirect URLs**, add `http://localhost:5173/**`.
 4. Save.
 
-This is where the "confirm your email" link sends people. When you deploy
-(Stage 8) you'll add your live URL here too.
+This is where the "confirm your email" and "reset your password" links send
+people. When you put the app online, add its address here too
+([deployment.md](deployment.md)).
 
 ### Email confirmation (optional for local testing)
 

@@ -48,6 +48,11 @@ export function LoginPage() {
           <FormField label="Password" error={errors.password?.message}>
             <Input type="password" autoComplete="current-password" {...register('password')} />
           </FormField>
+          <p className="-mt-2 text-right text-sm">
+            <Link to="/forgot-password" className="text-primary hover:underline">
+              Forgot password?
+            </Link>
+          </p>
 
           {formError && (
             <p role="alert" className="rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive">

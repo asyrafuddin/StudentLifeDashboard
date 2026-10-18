@@ -1,18 +1,22 @@
 import { FlaskConical, LogOut } from 'lucide-react'
+import { ThemeToggle } from '@/components/layout/ThemeToggle'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/hooks/useAuth'
 import { useSignOut } from '@/hooks/useSignOut'
 
-/** Bottom of the sidebar: who is signed in, with a sign-out button. */
+/** Bottom of the sidebar: who is signed in, the theme switch, and sign out. */
 export function AccountMenu() {
   const auth = useAuth()
   const { signOut, signingOut } = useSignOut()
 
   if (auth.status === 'demo') {
     return (
-      <div className="flex items-center gap-2 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-900 dark:bg-amber-500/10 dark:text-amber-100">
-        <FlaskConical className="size-3.5 shrink-0" aria-hidden />
-        Demo mode: sample data
+      <div className="flex items-center gap-2">
+        <div className="flex min-w-0 flex-1 items-center gap-2 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-900 dark:bg-amber-500/10 dark:text-amber-100">
+          <FlaskConical className="size-3.5 shrink-0" aria-hidden />
+          Demo mode: sample data
+        </div>
+        <ThemeToggle />
       </div>
     )
   }
@@ -23,6 +27,7 @@ export function AccountMenu() {
       <p className="min-w-0 flex-1 truncate text-xs text-muted-foreground" title={auth.user.email}>
         {auth.user.email}
       </p>
+      <ThemeToggle />
       <Button variant="ghost" size="icon-sm" aria-label="Sign out" title="Sign out" onClick={signOut} disabled={signingOut}>
         <LogOut />
       </Button>

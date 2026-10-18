@@ -1,7 +1,8 @@
-import { Loader2, LogOut } from 'lucide-react'
+import { KeyRound, Loader2, LogOut } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router'
 import { PageHeader } from '@/components/PageHeader'
+import { AppearanceSection } from '@/components/settings/AppearanceSection'
 import { GradeScaleSection } from '@/components/settings/GradeScaleSection'
 import { ProfileForm } from '@/components/settings/ProfileForm'
 import { Button } from '@/components/ui/button'
@@ -28,15 +29,20 @@ export function SettingsPage() {
           <>
             <ProfileSection userId={auth.user.id} />
             <GradeScaleSection />
+            <AppearanceSection />
             <AccountSection email={auth.user.email ?? ''} />
           </>
         ) : (
-          <Card>
-            <CardContent className="text-sm text-muted-foreground">
-              Settings are saved to your account, so they need Supabase to be connected. You're in demo mode,
-              where nothing is saved. See <span className="font-medium text-foreground">docs/supabase-setup.md</span>.
-            </CardContent>
-          </Card>
+          <>
+            <Card>
+              <CardContent className="text-sm text-muted-foreground">
+                Profile and grading settings are saved to your account, so they need Supabase to be connected.
+                You're in demo mode, where nothing is saved. See{' '}
+                <span className="font-medium text-foreground">docs/supabase-setup.md</span>.
+              </CardContent>
+            </Card>
+            <AppearanceSection />
+          </>
         )}
 
         <Card>
@@ -51,7 +57,6 @@ export function SettingsPage() {
                   My Courses
                 </Link>
               </li>
-              <li>Light / dark theme: coming in Stage 8</li>
             </ul>
           </CardContent>
         </Card>
@@ -112,7 +117,13 @@ function AccountSection({ email }: { email: string }) {
           Signed in as <span className="font-medium text-foreground">{email}</span>
         </CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="flex flex-wrap gap-2">
+        <Button asChild variant="outline">
+          <Link to="/update-password">
+            <KeyRound aria-hidden />
+            Change password
+          </Link>
+        </Button>
         <Button variant="outline" onClick={signOut} disabled={signingOut}>
           <LogOut aria-hidden />
           Sign out
