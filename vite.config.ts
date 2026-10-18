@@ -10,6 +10,8 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(import.meta.dirname, './src'),
+      // Code shared with the Supabase Edge Functions (e.g. the AI assistant's data contract).
+      '@shared': path.resolve(import.meta.dirname, './supabase/functions/_shared'),
     },
   },
   test: {

@@ -3,10 +3,11 @@
 A web app that helps university students manage courses, deadlines, exams, their
 weekly timetable, grades/GPA and study time in one place.
 
-> **Current status: Stage 6 of 8.** All core features work and have been
-> hardened: complete data loading (no silent 1,000-row cut-off), friendly error
-> screens, offline and timezone notices, and 220+ automated tests including
-> database security tests. Stage 7 adds the optional AI study assistant.
+> **Current status: Stage 7 of 8.** All core features work, plus a **Study
+> Assistant** that suggests what to work on next: a rule-based plan out of
+> the box, and optional free AI suggestions (Google Gemini) through a secure
+> server-side function. 260+ automated tests, including database security
+> tests. Stage 8 is polish, accessibility and deployment docs.
 > Without Supabase configured,
 > the app runs in **demo mode**: the dashboard shows clearly labeled sample
 > data, and pages that save data explain that an account is needed.
@@ -22,6 +23,7 @@ weekly timetable, grades/GPA and study time in one place.
 | Dates | date-fns |
 | Forms & validation | React Hook Form + Zod |
 | Database & auth | Supabase (PostgreSQL, Auth, Row Level Security) |
+| Optional AI | Google Gemini API (free tier), called only from a Supabase Edge Function (Deno) |
 | Tests | Vitest, plus PGlite (in-memory PostgreSQL) for database tests |
 
 ## Getting started
@@ -35,7 +37,8 @@ npm run dev       # start the dev server at http://localhost:5173
 
 That runs the app in **demo mode**. To sign up and save real data, connect a
 free Supabase project by following **[docs/supabase-setup.md](docs/supabase-setup.md)**
-(about 10 minutes).
+(about 10 minutes). The optional AI suggestions need a few more steps:
+**[docs/ai-assistant.md](docs/ai-assistant.md)**.
 
 ### Scripts
 
@@ -58,6 +61,7 @@ src/
     assignments/       Assignment list, calendar, filters, form and dialogs
     auth/              AuthProvider (who is signed in) and route guards
     courses/           Course card, form, and delete dialog (with impact summary)
+    assistant/         Study plan card and "what the AI would see" preview
     dashboard/         Dashboard widgets (stat cards, deadlines, chart, …)
     exams/             Exam list (with countdowns), form and dialogs
     form/              Form building blocks (field with error, select, color picker, dialog)
@@ -71,6 +75,7 @@ src/
   hooks/               React hooks (auth, data loading, add/edit/delete editors)
   layouts/             Page shells (app with sidebar; centered auth card)
   lib/                 Core logic, mostly pure and unit-tested
+    assistant.ts         Study Assistant: the minimal AI summary and the rule-based plan
     dashboard-stats.ts   Dashboard numbers (pending, overdue, weekly study time, …)
     assignments.ts       Assignment filtering and sorting
     courses.ts           Course search and "what does deleting this remove?"
@@ -93,10 +98,15 @@ src/
   router.tsx           Route table (public vs. protected pages)
 supabase/
   migrations/          SQL that creates the database (tables, constraints, RLS)
-  tests/               Database security & constraint tests
+  functions/           Server-side code (Supabase Edge Functions, Deno)
+    _shared/             Request/plan formats shared with the browser
+    study-assistant/     The AI endpoint; the only place the AI key is used
+  tests/               Database security, constraint and Edge Function tests
 docs/
   supabase-setup.md    How to connect Supabase
+  ai-assistant.md      Optional AI suggestions: setup, privacy, troubleshooting
   database.md          Schema reference and security model
+  testing.md           Running tests, and the manual checklist
 ```
 
 **Key design decisions**
@@ -107,7 +117,12 @@ docs/
   ownership-checked foreign keys stop users reading or linking to anyone else's
   data, even if they bypass the app. See [docs/database.md](docs/database.md).
 - Only the public Supabase key is used in the browser. Secrets never go in
-  `VITE_` variables, and `.env.local` is git-ignored.
+  `VITE_` variables, and `.env.local` is git-ignored. The AI key is a
+  Supabase secret, used only by the `study-assistant` Edge Function.
+- AI is optional and never trusted blindly: the server checks every request
+  and every AI answer against a shared format, enforces a daily per-user
+  limit, and the AI can't change any data. Without AI, the same page shows a
+  rule-based plan.
 
 ## Tests
 
@@ -120,7 +135,8 @@ guide, including a **manual checklist for your real Supabase project**, is in
 | Logic | `src/lib/*.test.ts` | GPA, grades, dashboard stats, study totals, timetable clashes, validation rules |
 | Page workflows | `src/pages/*.test.tsx` and others | Clicking through real pages in a simulated browser (database replaced by fakes): create/edit/delete, errors, empty states |
 | Navigation | `src/router.test.tsx` | Signed-out users can't reach private pages; crash screen |
-| Database | `supabase/tests/` | Real migrations in an in-memory PostgreSQL: RLS, ownership, constraints, and that every value a form accepts fits the database |
+| Database | `supabase/tests/` | Real migrations in an in-memory PostgreSQL: RLS, ownership, constraints, the AI daily limit, and that every value a form accepts fits the database |
+| AI endpoint | `supabase/tests/study-assistant-function.test.ts` | Sign-in, request checks, daily limit, safe errors, the key never leaks |
 
 ## How grades and GPA are calculated
 
@@ -154,10 +170,10 @@ GPA = sum(grade points × credits) / sum(credits)
 | 4 | Exams & weekly timetable | ✅ Done |
 | 5 | Grades, configurable GPA scale, study tracker | ✅ Done |
 | 6 | Dashboard refinements, validation, error handling, tests | ✅ Done |
-| 7 | Optional AI study assistant (server-side) | Next |
-| 8 | Polish, accessibility, deployment docs | |
+| 7 | Optional AI study assistant (server-side) | ✅ Done |
+| 8 | Polish, accessibility, deployment docs | Next |
 
-## Known limitations (Stage 6)
+## Known limitations (Stage 7)
 
 - Applying a grading-scale preset is two requests (remove the old scale, then
   add the new one). If the second fails, the scale is left empty; apply the
@@ -180,5 +196,9 @@ GPA = sum(grade points × credits) / sum(credits)
 - Signing up with an email that already exists shows the same "check your email"
   screen. This is Supabase's deliberate protection against revealing which
   emails have accounts.
+- AI suggestions aren't saved: refreshing the page goes back to the
+  rule-based plan. The assistant plans for the current semester only.
+- The AI daily limit (20 requests per user per 24 hours) is fixed in the
+  database; changing it needs a new migration.
 - The production JS bundle is ~1 MB (~320 kB gzipped), mostly the chart and
   Supabase libraries; code-splitting is planned for Stage 8.

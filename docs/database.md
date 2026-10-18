@@ -18,6 +18,7 @@ auth.users (managed by Supabase Auth)
          ├─ grade_entries     individual assessment scores
          ├─ course_results    final course grade (0 or 1 per course)
          └─ study_sessions    (course is optional)
+ └─ assistant_requests     AI usage log for the daily limit (no direct access)
 ```
 
 Every table except `profiles` has a `user_id` column. It defaults to the
@@ -160,6 +161,20 @@ A running timer is a row with `ended_at` = null, saved the moment it starts.
 That's why a timer survives a page refresh. Stopping it fills in `ended_at`
 and `duration_seconds`. A timer left running over 24 hours can't be saved
 as-is (it exceeds the limit), so the app asks for the real duration instead.
+
+### assistant_requests
+| Column | Type | Rules |
+| --- | --- | --- |
+| user_id | uuid | the user who asked for AI suggestions |
+| created_at | timestamptz | when they asked |
+
+Used only for the AI assistant's daily limit (see [ai-assistant.md](ai-assistant.md)).
+Users have **no** direct access to this table: no grants and no policies, so
+they can't read it or reset their count. The Edge Function calls
+`claim_assistant_request()`, a `security definer` function that only ever
+touches the caller's own rows. It returns `false` once the caller has made
+20 requests in the last 24 hours, and takes a per-user lock so two requests at
+the same moment can't both slip under the limit.
 
 ## What happens when something is deleted
 

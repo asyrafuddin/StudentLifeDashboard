@@ -31,3 +31,6 @@ dist-ssr
 
 # Test coverage output
 coverage
+
+# Supabase CLI local state (project link, cached versions)
+supabase/.temp

@@ -7,6 +7,7 @@ import {
   type LucideIcon,
   NotebookPen,
   Settings,
+  Sparkles,
   Timer,
 } from 'lucide-react'
 
@@ -25,6 +26,7 @@ export const NAV_ITEMS: NavItem[] = [
   { label: 'Timetable', path: '/timetable', icon: CalendarDays },
   { label: 'Grades & GPA', path: '/grades', icon: GraduationCap },
   { label: 'Study Tracker', path: '/study', icon: Timer },
+  { label: 'Study Assistant', path: '/assistant', icon: Sparkles },
 ]
 
 export const SETTINGS_NAV_ITEM: NavItem = { label: 'Settings', path: '/settings', icon: Settings }

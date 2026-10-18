@@ -17,7 +17,7 @@
     "jsx": "react-jsx",
 
     /* Path alias: import from "@/lib/utils" instead of "../../lib/utils" */
-    "paths": { "@/*": ["./src/*"] },
+    "paths": { "@/*": ["./src/*"], "@shared/*": ["./supabase/functions/_shared/*"] },
 
     /* Linting */
     "noUnusedLocals": true,
@@ -25,5 +25,5 @@
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src"]
+  "include": ["src", "supabase/functions/_shared"]
 }

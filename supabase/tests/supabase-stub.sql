@@ -24,3 +24,9 @@ as $$
 $$;
 
 grant execute on function auth.uid() to anon, authenticated;
+
+-- Like real Supabase: new tables and functions in `public` are open to the API
+-- roles by default, so each migration must revoke what it doesn't want exposed.
+alter default privileges in schema public grant all on tables to anon, authenticated;
+alter default privileges in schema public grant all on sequences to anon, authenticated;
+alter default privileges in schema public grant execute on functions to anon, authenticated;

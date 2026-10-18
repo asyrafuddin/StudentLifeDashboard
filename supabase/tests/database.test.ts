@@ -247,6 +247,41 @@ describe('course results', () => {
   })
 })
 
+describe('study assistant daily limit', () => {
+  const claim = (userId: string | null) =>
+    asUser(userId, async (tx) => (await rows<{ ok: boolean }>(tx, 'select public.claim_assistant_request() as ok'))[0].ok)
+
+  it('allows 20 requests per user per 24 hours, counting each user separately', async () => {
+    const results: boolean[] = []
+    for (let i = 0; i < 21; i++) results.push(await claim(ALICE))
+    expect(results.filter(Boolean)).toHaveLength(20)
+    expect(results[20]).toBe(false)
+    // Alice's usage doesn't affect Bob.
+    expect(await claim(BOB)).toBe(true)
+  })
+
+  it('stops counting requests older than 24 hours', async () => {
+    expect(await claim(ALICE)).toBe(false)
+    // As the database owner (not a user), age Alice's requests by a day.
+    await db.query(`update assistant_requests set created_at = now() - interval '25 hours' where user_id = $1`, [ALICE])
+    expect(await claim(ALICE)).toBe(true)
+  })
+
+  it("gives users no direct access to the usage table, so they can't reset their count", async () => {
+    for (const sql of [
+      'select * from assistant_requests',
+      'delete from assistant_requests',
+      `insert into assistant_requests (user_id) values ('${ALICE}')`,
+    ]) {
+      await expect(asUser(ALICE, (tx) => tx.query(sql)), sql).rejects.toThrow(/permission denied/)
+    }
+  })
+
+  it('cannot be used by signed-out visitors', async () => {
+    await expect(claim(null)).rejects.toThrow(/permission denied/)
+  })
+})
+
 describe('delete behavior', () => {
   it('blocks deleting a semester that still has courses', async () => {
     await expect(

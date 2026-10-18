@@ -28,6 +28,7 @@ The database is built by the SQL files in `supabase/migrations/`, applied
 | `20261013000000_initial_schema.sql` | Stage 2 | All tables, constraints and security policies |
 | `20261014000000_class_session_instructor.sql` | Stage 4 | Optional instructor for each timetable class |
 | `20261015000000_course_results_unique_per_user.sql` | Stage 5 | Makes "one final grade per course" a per-user rule (closes a small information leak) |
+| `20261018000000_study_assistant_usage.sql` | Stage 7 | Daily limit for AI suggestions (only needed if you set up the [AI assistant](ai-assistant.md)) |
 
 **Option A: SQL Editor (easiest)**
 

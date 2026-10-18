@@ -3,6 +3,7 @@ import { PublicOnly, RequireAuth } from '@/components/auth/RouteGuards'
 import { RouteError } from '@/components/RouteError'
 import { AppLayout } from '@/layouts/AppLayout'
 import { AuthLayout } from '@/layouts/AuthLayout'
+import { AssistantPage } from '@/pages/AssistantPage'
 import { AssignmentsPage } from '@/pages/AssignmentsPage'
 import { CourseDetailPage } from '@/pages/CourseDetailPage'
 import { CoursesPage } from '@/pages/CoursesPage'
@@ -53,6 +54,7 @@ export const routes: RouteObject[] = [
               { path: 'timetable', element: <TimetablePage /> },
               { path: 'grades', element: <GradesPage /> },
               { path: 'study', element: <StudyPage /> },
+              { path: 'assistant', element: <AssistantPage /> },
               { path: 'settings', element: <SettingsPage /> },
               { path: '*', element: <NotFoundPage /> },
             ],

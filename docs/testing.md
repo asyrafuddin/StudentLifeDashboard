@@ -37,11 +37,18 @@ in-memory fakes.
 | **Data loading** | `src/hooks/useAsync.test.tsx`, `src/lib/fetch-all.test.ts` | Refresh keeps data on screen; failed refresh keeps data; refresh on returning to the tab; paging past Supabase's 1,000-row limit |
 | **Database security** | `supabase/tests/database.test.ts` | The real migrations in PostgreSQL: users can't see, change, delete or link to other users' data (RLS + ownership checks); constraints; what deleting a course or semester does |
 | **Forms vs. database** | `supabase/tests/schema-parity.test.ts` | The longest text and largest numbers each form accepts are also accepted by the database |
+| **Study Assistant** | `src/lib/assistant.test.ts`, `src/services/assistant.test.ts`, `src/pages/AssistantPage.test.tsx` | Only the minimal data is included; the rule-based plan; AI and rule-based plans are labelled; every AI failure falls back with a clear message |
+| **AI endpoint (server)** | `supabase/tests/study-assistant-function.test.ts` | Sign-in required; bad, oversized or extra-field requests rejected before the AI is called; daily limit; safe error messages; the AI key never appears in responses or logs |
 
 **Tests that were checked to work:** several of these were verified by
 deliberately breaking the code they protect (for example turning off RLS,
-switching GPA to a simple average, or letting a form accept longer text than
-the database) and confirming the tests failed.
+switching GPA to a simple average, letting a form accept longer text than
+the database, or removing the AI usage table's access restrictions) and
+confirming the tests failed.
+
+The database tests' stand-in for Supabase gives new tables and functions the
+same open default permissions as real Supabase, so a migration that forgets
+to lock something down fails the tests.
 
 ## What still needs a manual check
 
@@ -80,7 +87,17 @@ migrations, check these once by hand.
       the session appears in the totals
 - [ ] Turn off Wi-Fi: the offline banner appears, and saving shows a clear error
 
-### 3. Looks right on your devices
+### 3. Study Assistant (only if you set up AI)
+
+After following [ai-assistant.md](ai-assistant.md):
+
+- [ ] **Study Assistant** shows a plan labelled "Rule-based suggestions"
+- [ ] **Get AI suggestions** replaces it with one labelled "AI-generated suggestions"
+- [ ] In the browser's developer tools (F12 → Network), the request to
+      `study-assistant` contains only what "Show the exact data" displays, and
+      no `AIza` key appears anywhere in the page's requests or files
+
+### 4. Looks right on your devices
 
 Open the app on a phone (or a narrow browser window) and check that every page
 fits the screen without sideways scrolling.
